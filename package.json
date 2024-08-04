@@ -19,11 +19,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "electron": "electron ."
+    "start:react": "react-scripts start",
+    "start:electron": "electron .",
+    "start": "concurrently \"npm run start:react\" \"npm run start:electron\""
   },
   "eslintConfig": {
     "extends": [
@@ -44,6 +42,7 @@
     ]
   },
   "devDependencies": {
+    "concurrently": "^8.2.2",
     "electron": "^31.3.1"
   }
 }
