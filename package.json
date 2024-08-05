@@ -19,7 +19,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start:react": "react-scripts start",
+    "start:react": "cross-env BROWSER=none react-scripts start",
     "start:electron": "electron .",
     "start": "concurrently \"npm run start:react\" \"npm run start:electron\""
   },
@@ -43,6 +43,8 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "electron": "^31.3.1"
+    "cross-env": "^7.0.3",
+    "electron": "^31.3.1",
+    "wait-on": "^7.2.0"
   }
 }

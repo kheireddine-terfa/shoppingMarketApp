@@ -1,5 +1,6 @@
 const { app, BrowserWindow } = require('electron')
 const path = require('path')
+const waitOn = require('wait-on')
 const express = require('express')
 const server = express()
 const productRoutes = require('./routes/productRoutes')
@@ -25,11 +26,26 @@ function createWindow() {
   })
 
   mainWindow.loadURL('http://localhost:3000')
-  mainWindow.webContents.openDevTools()
+  //mainWindow.webContents.openDevTools()
 }
 
 app.whenReady().then(() => {
-  createWindow()
+  const opts = {
+    resources: ['http://localhost:3000'],
+    delay: 1000, // initial delay before checking the resources
+    interval: 100, // poll interval for checking resources
+    timeout: 30000, // timeout to wait for resources
+    window: 1000, // stabilization window
+  }
+
+  waitOn(opts, (err) => {
+    if (err) {
+      console.error('React development server did not start in time:', err)
+      app.quit()
+      return
+    }
+    createWindow()
+  })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

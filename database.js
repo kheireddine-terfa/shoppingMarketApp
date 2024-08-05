@@ -1,5 +1,17 @@
-const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./database.db'); // or use a file path like './database.db'
+const sqlite3 = require('sqlite3').verbose()
+const path = require('path')
+const fs = require('fs')
+
+// Construct the path to the database folder and file
+const dbFolderPath = path.join('C:', 'DataBases', 'productsDataBase')
+const dbFilePath = path.join(dbFolderPath, 'database.db')
+
+// Create the folder if it doesn't exist
+if (!fs.existsSync(dbFolderPath)) {
+  fs.mkdirSync(dbFolderPath, { recursive: true })
+}
+
+const db = new sqlite3.Database(dbFilePath)
 
 db.serialize(() => {
   // Create supplier table
@@ -9,7 +21,7 @@ db.serialize(() => {
       name TEXT NOT NULL,
       adresse TEXT NOT NULL
     )
-  `);
+  `)
 
   // Create product table
   db.run(`
@@ -21,7 +33,7 @@ db.serialize(() => {
       quantity INTEGER NOT NULL,
       min_quantity INTEGER NOT NULL
     )
-  `);
+  `)
 
   // Create supply table
   db.run(`
@@ -33,7 +45,7 @@ db.serialize(() => {
       supplier_id INTEGER,
       FOREIGN KEY (supplier_id) REFERENCES supplier(id)
     )
-  `);
+  `)
 
   // Create expenses table
   db.run(`
@@ -43,7 +55,7 @@ db.serialize(() => {
       description TEXT NOT NULL,
       amount REAL NOT NULL
     )
-  `);
+  `)
 
   // Create sale table
   db.run(`
@@ -52,7 +64,7 @@ db.serialize(() => {
       date TEXT NOT NULL,
       amount REAL NOT NULL
     )
-  `);
+  `)
 
   // Create supply_product table for many-to-many relationship between supply and product
   db.run(`
@@ -63,7 +75,7 @@ db.serialize(() => {
       FOREIGN KEY (product_id) REFERENCES product(id),
       PRIMARY KEY (supply_id, product_id)
     )
-  `);
+  `)
 
   // Create sale_product table for many-to-many relationship between sale and product
   db.run(`
@@ -74,7 +86,7 @@ db.serialize(() => {
       FOREIGN KEY (product_id) REFERENCES product(id),
       PRIMARY KEY (sale_id, product_id)
     )
-  `);
-});
+  `)
+})
 
-module.exports = db;
+module.exports = db
