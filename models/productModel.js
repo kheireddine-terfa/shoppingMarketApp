@@ -1,29 +1,31 @@
-// models/productModel.js
-const db = require('../database');
-
-const createProduct = (name, price, bare_code, quantity, min_quantity, callback) => {
-  db.run(
-    'INSERT INTO product (name, price, bare_code, quantity, min_quantity) VALUES (?, ?, ?, ?, ?)',
-    [name, price, bare_code, quantity, min_quantity],
-    function (err) {
-      if (err) {
-        return callback(err);
-      }
-      callback(null, { id: this.lastID });
-    }
-  );
-};
-
-const getProducts = (callback) => {
-  db.all('SELECT * FROM product', [], (err, rows) => {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, rows);
+module.exports = (sequelize, DataTypes) => {
+  const Product = sequelize.define('Product', {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    price: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    bare_code: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    quantity: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    min_quantity: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   });
-};
 
-module.exports = {
-  createProduct,
-  getProducts,
+  return Product;
 };

@@ -1,26 +1,25 @@
-// controllers/productController.js
-const productModel = require('../models/productModel');
+const { Product } = require('../models');
 
-const addProduct = (req, res) => {
-  const { name, price, bare_code, quantity, min_quantity } = req.body;
-  productModel.createProduct(name, price, bare_code, quantity, min_quantity, (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.status(200).json(result);
-  });
+const createProduct = async (req, res) => {
+  try {
+    const { name, price, bare_code, quantity, min_quantity } = req.body;
+    const product = await Product.create({ name, price, bare_code, quantity, min_quantity });
+    res.status(201).json(product);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create product' });
+  }
 };
 
-const getAllProducts = (req, res) => {
-  productModel.getProducts((err, products) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
+const getProducts = async (req, res) => {
+  try {
+    const products = await Product.findAll();
     res.status(200).json(products);
-  });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch products' });
+  }
 };
 
 module.exports = {
-  addProduct,
-  getAllProducts,
+  createProduct,
+  getProducts,
 };
