@@ -1,10 +1,10 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../database');
+const Sequelize = require('sequelize')
+const sequelize = require('../database')
 
-const Product = require('./productModel')(sequelize, Sequelize);
+const Product = require('./productModel')(sequelize, Sequelize)
 
-sequelize.sync();
+sequelize.sync()
 
 module.exports = {
   Product,
-};
+}
