@@ -1,11 +1,16 @@
 import React from 'react'
-import ProductForm from './components/ProductForm'
+import Header from './components/Header'
+import SideBar from './components/SideBar'
+import MainContent from './components/MainContent'
 
 const App = () => {
   return (
-    <div className="App mx-20 my-14">
-      <h1 className="text-2xl font-bold mb-5">Product Form</h1>
-      <ProductForm />
+    <div className="app-container">
+      <Header />
+      <div className="flex">
+        <SideBar />
+        <MainContent />
+      </div>
     </div>
   )
 }
