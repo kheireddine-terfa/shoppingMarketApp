@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom' // Import useNavigate
 import InputField from './InputField'
 import Button from './Button'
 
@@ -14,6 +15,8 @@ const Form = () => {
     message: '',
     statusCode: null,
   })
+  // Create a navigate function
+  const navigate = useNavigate()
 
   // Handle input change
   const handleChange = (e) => {
@@ -43,6 +46,12 @@ const Form = () => {
         message: result.message,
         statusCode: response.status,
       })
+      if (response.status >= 200 && response.status < 300) {
+        // Redirect after a short delay if successful
+        setTimeout(() => {
+          navigate('/home') // Change this to your home page route
+        }, 2000) // Adjust delay as needed (2000ms = 2 seconds)
+      }
     } catch (error) {
       setResponse({
         message: 'An error occurred. Please try again.',

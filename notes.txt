@@ -1,0 +1,2 @@
+FOR THE MainContent COMPONENT :
+pass the Element inside the main as a component prop , and also the width of the mainContent space.
