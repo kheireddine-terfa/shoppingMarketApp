@@ -3,7 +3,9 @@ const path = require('path')
 const waitOn = require('wait-on')
 const express = require('express')
 const cors = require('cors')
+const dotenv = require('dotenv')
 
+const userRoutes = require('./routes/userRoutes')
 const productRoutes = require('./routes/productRoutes')
 const categoryRoutes = require('./routes/categoryRoutes')
 const expenseRoutes = require('./routes/expenseRoutes')
@@ -15,10 +17,12 @@ const supplierRoutes = require('./routes/supplierRoutes')
 const supplyRoutes = require('./routes/supplyRoutes')
 
 const server = express()
+dotenv.config({ path: './config.env' }) //read the variables from this file and save them into nodeJS environment variables
 server.use(express.urlencoded({ extended: true }))
 server.use(express.json())
 server.use(cors())
 
+server.use('/api', userRoutes)
 server.use('/api/products', productRoutes)
 server.use('/api/categories', categoryRoutes)
 server.use('/api/expenses', expenseRoutes)
