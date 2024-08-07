@@ -5,16 +5,21 @@ const express = require('express')
 const cors = require('cors')
 
 const productRoutes = require('./routes/productRoutes')
+const userRoutes = require('./routes/userRoutes')
+
+const dotenv = require('dotenv')
+dotenv.config({ path: './config.env' }) //read the variables from this file and save them into nodeJS environment variables
 
 const server = express()
 server.use(express.urlencoded({ extended: true }))
 server.use(express.json())
 server.use(cors())
 server.use('/api/products', productRoutes)
-
+server.use('/api', userRoutes)
 // Start the server on port 3001
-server.listen(3001, () => {
-  console.log('Server is running on port 3001')
+const port = process.env.PORT || 3001
+server.listen(port, () => {
+  console.log(`Server is running on port ${port}`)
 })
 
 function createWindow() {
