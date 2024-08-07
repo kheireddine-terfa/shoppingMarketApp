@@ -5,17 +5,30 @@ const express = require('express')
 const cors = require('cors')
 
 const productRoutes = require('./routes/productRoutes')
-const userRoutes = require('./routes/userRoutes')
-
-const dotenv = require('dotenv')
-dotenv.config({ path: './config.env' }) //read the variables from this file and save them into nodeJS environment variables
+const categoryRoutes = require('./routes/categoryRoutes')
+const expenseRoutes = require('./routes/expenseRoutes')
+const expirationDateRoutes = require('./routes/expirationDateRoutes')
+const productSupplyRoutes = require('./routes/productSupplyRoutes')
+const productSaleRoutes = require('./routes/productSaleRoutes')
+const saleRoutes = require('./routes/saleRoutes')
+const supplierRoutes = require('./routes/supplierRoutes')
+const supplyRoutes = require('./routes/supplyRoutes')
 
 const server = express()
 server.use(express.urlencoded({ extended: true }))
 server.use(express.json())
 server.use(cors())
+
 server.use('/api/products', productRoutes)
-server.use('/api', userRoutes)
+server.use('/api/categories', categoryRoutes)
+server.use('/api/expenses', expenseRoutes)
+server.use('/api/expiration-dates', expirationDateRoutes)
+server.use('/api/product-supplies', productSupplyRoutes)
+server.use('/api/product-sales', productSaleRoutes)
+server.use('/api/sales', saleRoutes)
+server.use('/api/suppliers', supplierRoutes)
+server.use('/api/supplies', supplyRoutes)
+
 // Start the server on port 3001
 const port = process.env.PORT || 3001
 server.listen(port, () => {
