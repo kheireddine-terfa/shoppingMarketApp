@@ -20,7 +20,7 @@ import ProductsPage from './pages/ProductsPage'
 import SalesPage from './pages/SalesPage'
 const App = () => {
   return (
-    <div className="app-container ">
+    <div className=" app-container bg-zinc-100">
       <Header />
       <BrowserRouter>
         <Routes>
