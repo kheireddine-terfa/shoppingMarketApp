@@ -1,33 +1,59 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import SaledProduct from './SaledProduct';
 import Category from './Category';
 import QuantityModal from './QuantityModal';
+import BarcodeScanner from '../barcodeScanner/BarcodeScanner';
 
 const SalesContent = () => {
-  const [products, setProducts] = useState([
-    { id: 1, name: 'Apple', price: 0.99, category: 'Fruits', quantity: 1000, hasBarCode: false, balanced_product: true },
-    { id: 2, name: 'Orange', price: 1.29, category: 'Fruits', quantity: 500, hasBarCode: false, balanced_product: true },
-    { id: 3, name: 'Banana', price: 1.09, category: 'Fruits', quantity: 2000, hasBarCode: false, balanced_product: true },
-    { id: 11, name: 'Carrot', price: 0.89, category: 'Vegetables', quantity: 100, hasBarCode: false, balanced_product: false },
-    { id: 12, name: 'Broccoli', price: 1.59, category: 'Vegetables', quantity: 150, hasBarCode: false, balanced_product: false },
-    { id: 21, name: 'Almond', price: 3.49, category: 'Nuts', quantity: 300, hasBarCode: false, balanced_product: true },
-    { id: 22, name: 'Walnut', price: 4.29, category: 'Nuts', quantity: 120, hasBarCode: false, balanced_product: true },
-    { id: 31, name: 'Honey', price: 5.99, category: 'Others', quantity: 50, hasBarCode: false, balanced_product: false },
-    { id: 32, name: 'Jam', price: 2.59, category: 'Others', quantity: 75, hasBarCode: false, balanced_product: false },
-  ]);
-
+  const [categories, setCategories] = useState([]);
+  const [noBarCodeProducts, setNoBarCodeProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [productsToSale, setProductsToSale] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [sale, setSale] = useState(null);
+  const [productsSale, setProductsSale] = useState(null)
+  const [isPaid, setIsPaid] = useState(true);  // New state for payment status
+  const [paidAmount, setPaidAmount] = useState(0);  // New state for paid amount
+  const [remainingAmount, setRemainingAmount] = useState(0);  // New state for remaining amount
+  const [isModalVisible, setIsModalVisible] = useState(false);  
+  const [description, setDescription]  = useState("")
+
+  // Fetch categories and products when the component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/categories'); // Replace with your API 
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Failed to fetch categories', error);
+      }
+    };
+
+    const fetchNoBarCodeProducts = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/products/no-barcode'); // Replace with your API endpoint
+        setNoBarCodeProducts(response.data);
+        console.log(noBarCodeProducts)
+      } catch (error) {
+        console.error('Failed to fetch products', error);
+      }
+    };
+
+    fetchCategories();
+    fetchNoBarCodeProducts();
+  }, []);
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
-    setSelectedProducts(products.filter(product => product.category === category));
+    const filteredProducts = noBarCodeProducts.filter(product => product.categoryId === category.id);
+    console.log(filteredProducts);
+    setSelectedProducts(filteredProducts);
   };
-
+  
   const handleProductClick = (product) => {
     setSelectedProduct(product);
     setModalVisible(true);
@@ -39,28 +65,119 @@ const SalesContent = () => {
   };
 
   const handleAddToSale = (product, selectedQuantity) => {
+    if (selectedQuantity === 0) {
+      return;
+    }
+  
     const existingProduct = productsToSale.find(p => p.id === product.id);
-    
     if (existingProduct) {
       setProductsToSale(productsToSale.map(p => 
-        p.id === product.id ? { ...p, quantity: p.quantity + selectedQuantity } : p
+        p.id === product.id ? { ...p, } : p
       ));
     } else {
       setProductsToSale([...productsToSale, { ...product, quantity: selectedQuantity }]);
     }
-
+  
     handleModalClose();
   };
+  
 
-  const handleQuantityUpdate = (id, newQuantity) => {
+  const handleQuantityUpdate = async (id, newQuantity) => {
+
+    const product = await axios.get(`http://localhost:3001/api/products/${id}`);
+    const maxQuantity = product.data.quantity;
+
+    console.log(product)
+    
+    if (newQuantity > maxQuantity) {
+      alert(`Quantity cannot exceed the maximum allowed quantity of ${maxQuantity}.`);
+      return; // Exit the function without updating the state
+    }
+  
+    // Update the product quantity if the new quantity is valid
     setProductsToSale(productsToSale.map(product =>
       product.id === id ? { ...product, quantity: newQuantity } : product
     ));
   };
+  
 
   const handleDelete = (id) => {
     setProductsToSale(productsToSale.filter(product => product.id !== id));
   };
+  
+
+  const handleValidateSaleClick = async () => {
+    const confirmSale = window.confirm("Are you sure you want to confirm this sale?");
+  
+    if (!confirmSale) {
+      return; // Exit the function if the user cancels
+    }
+  
+    try {
+      const totalPrice = productsToSale.reduce((sum, product) => {
+        const productPrice = product.balanced_product 
+          ? product.price * (product.quantity / 1000) 
+          : product.price * product.quantity;
+        return sum + productPrice;
+      }, 0).toFixed(2);
+      
+      if (isPaid) {
+        setRemainingAmount(0);
+        setPaidAmount(parseFloat(totalPrice)); // Ensure paidAmount matches totalPrice if paid
+      } else {
+        setRemainingAmount((totalPrice - paidAmount).toFixed(2));
+      }
+  
+      // Create the sale
+      const saleData = {
+        date: new Date(),
+        amount: parseFloat(totalPrice),
+        paid_amount: paidAmount,
+        remaining_amount: parseFloat(remainingAmount),
+        description: description,
+      };
+  
+      const saleResponse = await axios.post('http://localhost:3001/api/sales', saleData);
+      const createdSale = saleResponse.data;
+      setSale(createdSale);
+  
+      // Create the ProductSale entries
+      const productSalePromises = productsToSale.map(product => {
+        return axios.post('http://localhost:3001/api/product-sales', {
+          quantity: product.quantity,
+          productId: product.id,
+          saleId: createdSale.id,
+        });
+      });
+  
+      const productsSaleResponse = await Promise.all(productSalePromises);
+      setProductsSale(productsSaleResponse.map(response => response.data));
+  
+      console.log('Sale and ProductSales successfully created', { sale: createdSale, productsSale: productsSaleResponse });
+  
+      // Reload the app after the sale is confirmed and processed
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to validate sale', error);
+    }
+  };
+
+  const handleBarcodeScanned = async (barcode) => {
+    try {
+      const response = await axios.get(`http://localhost:3001/api/products/barcode/${barcode}`);
+      const product = response.data;
+
+      if (product) {
+        handleAddToSale(product, 1); // Add the product with a default quantity of 1
+      } else {
+        alert('Product not found');
+      }
+    } catch (error) {
+      console.error('Failed to fetch product by barcode', error);
+    }
+  };
+  
+  
 
   const totalQuantity = useMemo(() => {
     return productsToSale.reduce((sum, product) => sum + (product.balanced_product ? 1 : product.quantity), 0);
@@ -82,10 +199,13 @@ const SalesContent = () => {
         <section className="w-1/2 p-4 mr-10">
           {selectedCategory === null ? (
             <div className="grid grid-cols-3 gap-5 gap-y-12">
-              <Category title="Fruits" imageSrc={require("./image.jpeg")} onClick={() => handleCategoryClick('Fruits')} />
-              <Category title="Légumes" imageSrc={require("./veg.jpeg")} onClick={() => handleCategoryClick('Vegetables')} />
-              <Category title="Noisettes" imageSrc={require("./nois.jpeg")} onClick={() => handleCategoryClick('Nuts')} />
-              <Category title="Autres" imageSrc={require("./oth.jpeg")} onClick={() => handleCategoryClick('Others')} />
+              {categories.map(category => (
+                <Category
+                  key={category.id}
+                  title={category.name}
+                  onClick={() => handleCategoryClick(category)}
+                />
+              ))}
             </div>
           ) : (
             <>
@@ -103,7 +223,6 @@ const SalesContent = () => {
                     onClick={() => handleProductClick(product)}
                   >
                     <img
-                      src={require("./nois.jpeg")}
                       alt={product.name}
                       className="mx-auto h-full object-cover h-20"
                     />
@@ -145,10 +264,45 @@ const SalesContent = () => {
             <span className="w-1/3 text-right text-2xl">{totalPrice} DA</span>
           </div>
 
+          <div className="flex flex-col mt-4 p-4 bg-white shadow-md rounded-md">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={isPaid}
+                onChange={(e) => setIsPaid(e.target.checked)}
+                className="h-4 w-4"
+              />
+              <span className="text-lg font-semibold">Paid</span>
+            </label>
+            {!isPaid && (
+              <div className="mt-2">
+                <label className="block text-lg font-semibold">Amount Paid:</label>
+                <input
+                  type="number"
+                  value={paidAmount}
+                  onChange={(e) => setPaidAmount(parseFloat(e.target.value))}
+                  className="mt-1 p-2 w-full border rounded-md"
+                  min="0"
+                />
+              </div>
+            )}
+            <div className="mt-2">
+                <label className="block text-lg font-semibold">Déscription</label>
+                <input
+                  type="text"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="mt-1 p-2 w-full border rounded-md"
+                  min="0"
+                />
+              </div>
+          </div>
+
           <div className="flex justify-end space-x-4 mt-4 p-4">
             <button
-              onClick={() => alert("Validated!")}
+              onClick={handleValidateSaleClick}
               className="px-4 py-2 bg-green-500 text-white font-bold rounded-md hover:bg-green-600"
+              disabled={productsToSale.length === 0}
             >
               Valider
             </button>
@@ -170,6 +324,7 @@ const SalesContent = () => {
           maxQuantity={selectedProduct.quantity}
         />
       )}
+      <BarcodeScanner onBarcodeScanned={handleBarcodeScanned} />
     </main>
   );
 };

@@ -1,4 +1,4 @@
-const { Sequelize } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const path = require('path');
 const fs = require('fs');
 
@@ -15,7 +15,7 @@ if (!fs.existsSync(dbFolderPath)) {
 const sequelize = new Sequelize({
   dialect: 'sqlite',
   storage: dbFilePath,
-  logging: false, // Disable logging if you don't want Sequelize to log SQL queries
+  logging: console.log, // Enable logging to see SQL queries
 });
 
 (async () => {
@@ -23,11 +23,27 @@ const sequelize = new Sequelize({
     await sequelize.authenticate();
     console.log('Connection to the database has been established successfully.');
 
-    // Synchronize the models, but avoid recreating the database
-    await sequelize.sync({ alter: false, force: false }); // Ensure no force sync
+    // Define a simple model
+    const TestModel = sequelize.define('TestModel', {
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+    });
+
+    // Synchronize the model
+    await sequelize.sync({ force: true }); // Use force: true to recreate the table
+    console.log('TestModel table created successfully.');
+
+    // Test inserting data
+    await TestModel.create({ name: 'Sample Name' });
+    console.log('Sample data inserted successfully.');
+
+    // Test fetching data
+    const records = await TestModel.findAll();
+    console.log('Records:', records);
+    
   } catch (error) {
     console.error('Unable to connect to the database:', error);
   }
 })();
-
-module.exports = sequelize;
