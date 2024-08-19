@@ -18,6 +18,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import ProductsPage from './pages/ProductsPage'
 import SalesPage from './pages/SalesPage'
+import SuppliersPage from './pages/SuppliersPage'
 const App = () => {
   return (
     <div className=" app-container bg-zinc-100">
@@ -28,6 +29,7 @@ const App = () => {
           <Route path="/home" element={<HomePage />}></Route>
           <Route path="/sales" element={<SalesPage />}></Route>
           <Route path="/products" element={<ProductsPage />}></Route>
+          <Route path="/suppliers" element={<SuppliersPage/>}></Route>
         </Routes>
       </BrowserRouter>
     </div>
