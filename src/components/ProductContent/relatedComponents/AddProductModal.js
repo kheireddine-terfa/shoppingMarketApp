@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const AddProductModal = ({ onSubmit, onCancel }) => {
   const [productName, setProductName] = useState('')
@@ -7,6 +7,26 @@ const AddProductModal = ({ onSubmit, onCancel }) => {
   const [minQuantity, setMinQuantity] = useState('')
   const [barCode, setBarCode] = useState('')
   const [productImage, setProductImage] = useState(null)
+  const [isBalanced, setIsBalanced] = useState(false) // New state for balanced product
+  const [hasBarCode, setHasBarCode] = useState(false) // New state for barcode
+  const [categories, setCategories] = useState([]) // State for categories
+  const [selectedCategory, setSelectedCategory] = useState('') // State for selected category
+
+  useEffect(() => {
+    // Fetch categories from the API6134082000017
+
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/categories')
+        const data = await response.json()
+        setCategories(data)
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      }
+    }
+
+    fetchCategories()
+  }, [])
 
   const handleImageChange = (e) => {
     setProductImage(e.target.files[0])
@@ -16,11 +36,14 @@ const AddProductModal = ({ onSubmit, onCancel }) => {
     e.preventDefault()
     const newProduct = {
       name: productName,
-      bare_code: barCode,
-      price: parseFloat(productPrice),
+      price: productPrice,
+      bare_code: hasBarCode ? barCode : null, // Use barcode based on checkbox      price: parseFloat(productPrice),
       quantity: parseInt(productQuantity),
       min_quantity: parseInt(minQuantity),
       image: productImage, // Include the image in the product data
+      balanced_product: isBalanced, // Include balanced product state
+      category: selectedCategory, // Include selected category
+      hasBarCode: hasBarCode,
     }
     onSubmit(newProduct)
   }
@@ -41,6 +64,44 @@ const AddProductModal = ({ onSubmit, onCancel }) => {
             />
           </div>
           <div className="mb-4">
+            <label className="block text-gray-700">
+              <input
+                type="checkbox"
+                checked={isBalanced}
+                onChange={(e) => setIsBalanced(e.target.checked)}
+                className="mr-2"
+              />
+              Balanced Product
+            </label>
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">
+              <input
+                type="checkbox"
+                checked={hasBarCode}
+                onChange={(e) => setHasBarCode(e.target.checked)}
+                className="mr-2"
+              />
+              Has Barcode
+            </label>
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Category</label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">Select a category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-4">
             <label className="block text-gray-700">Product Bare Code</label>
             <input
               type="text"
@@ -54,6 +115,7 @@ const AddProductModal = ({ onSubmit, onCancel }) => {
             <label className="block text-gray-700">Price</label>
             <input
               type="number"
+              min={1}
               value={productPrice}
               onChange={(e) => setProductPrice(e.target.value)}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -64,6 +126,7 @@ const AddProductModal = ({ onSubmit, onCancel }) => {
             <label className="block text-gray-700">Quantity</label>
             <input
               type="number"
+              min={1}
               value={productQuantity}
               onChange={(e) => setProductQuantity(e.target.value)}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -74,6 +137,7 @@ const AddProductModal = ({ onSubmit, onCancel }) => {
             <label className="block text-gray-700">Minimum Quantity</label>
             <input
               type="number"
+              min={1}
               value={minQuantity}
               onChange={(e) => setMinQuantity(e.target.value)}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

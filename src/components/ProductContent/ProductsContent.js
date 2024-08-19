@@ -101,6 +101,9 @@ const ProductsContent = () => {
       formData.append('price', newProduct.price)
       formData.append('quantity', newProduct.quantity)
       formData.append('min_quantity', newProduct.min_quantity)
+      formData.append('hasBarCode', newProduct.hasBarCode)
+      formData.append('balanced_product', newProduct.balanced_product)
+      formData.append('category', newProduct.category)
       if (newProduct.image) {
         formData.append('image', newProduct.image) // Append the image file
       }
@@ -109,7 +112,9 @@ const ProductsContent = () => {
         method: 'POST',
         body: formData, // Send the FormData
       })
-
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value)
+      }
       if (response.ok) {
         const addedProduct = await response.json()
 
@@ -127,7 +132,8 @@ const ProductsContent = () => {
           inventoryState:
             addedProduct.quantity > addedProduct.min_quantity
               ? 'In Stock'
-              : addedProduct.quantity > 0
+              : addedProduct.quantity > 0 &&
+                addedProduct.quantity < addedProduct.min_quantity
               ? 'Low Stock'
               : 'Out of Stock',
           inventoryStateClass:

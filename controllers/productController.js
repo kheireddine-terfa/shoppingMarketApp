@@ -27,7 +27,16 @@ const upload = multer({
 const uploadProductPhoto = upload.single('image')
 const createProduct = async (req, res) => {
   try {
-    const { name, price, bare_code, quantity, min_quantity } = req.body
+    const {
+      name,
+      price,
+      bare_code,
+      quantity,
+      min_quantity,
+      balanced_product,
+      category,
+      hasBarCode,
+    } = req.body
     let image
     if (req.file.filename) {
       image = req.file.filename
@@ -39,6 +48,9 @@ const createProduct = async (req, res) => {
       quantity,
       min_quantity,
       image,
+      categoryId: category,
+      balanced_product,
+      hasBarCode,
     })
     res.status(201).json(product)
   } catch (error) {

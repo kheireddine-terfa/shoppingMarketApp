@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useState, useEffect, useMemo } from 'react'
 import axios from 'axios'
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline'
