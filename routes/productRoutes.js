@@ -5,6 +5,8 @@ const {
   getProductById,
   updateProduct,
   deleteProduct,
+  getProductsWithoutBarcode,
+  getProductByBarcode,
   uploadProductPhoto,
   deleteAllProducts,
 } = require('../controllers/productController')
@@ -18,6 +20,12 @@ router.post('/', uploadProductPhoto, createProduct)
 router.get('/', getProducts)
 // Delete All Products :
 router.delete('/', deleteAllProducts)
+// Get products without barcode
+router.get('/no-barcode', getProductsWithoutBarcode)
+
+// Get a product by barcode (place this before the ID route)
+router.get('/barcode/:barcode', getProductByBarcode)
+
 // Get a single product by ID
 router.get('/:id', getProductById)
 

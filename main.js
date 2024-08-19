@@ -53,7 +53,7 @@ function createWindow() {
   })
 
   mainWindow.loadURL('http://localhost:3000')
-  // mainWindow.webContents.openDevTools(); // Uncomment this line
+   mainWindow.webContents.openDevTools(); // Uncomment this line
 }
 
 app.whenReady().then(() => {

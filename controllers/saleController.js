@@ -2,8 +2,8 @@ const { Sale } = require('../models');
 
 const createSale = async (req, res) => {
   try {
-    const { date, amount, paid_amount, remaining_amount } = req.body;
-    const sale = await Sale.create({ date, amount, paid_amount, remaining_amount });
+    const { date, amount, paid_amount, remaining_amount,description } = req.body;
+    const sale = await Sale.create({ date, amount, paid_amount, remaining_amount,description });
     res.status(201).json(sale);
   } catch (error) {
     res.status(500).json({ error: 'Failed to create sale' });
@@ -36,10 +36,10 @@ const getSaleById = async (req, res) => {
 const updateSale = async (req, res) => {
   try {
     const { id } = req.params;
-    const { date, amount, paid_amount, remaining_amount } = req.body;
+    const { date, amount, paid_amount, remaining_amount, description } = req.body;
     const sale = await Sale.findByPk(id);
     if (sale) {
-      await sale.update({ date, amount, paid_amount, remaining_amount });
+      await sale.update({ date, amount, paid_amount, remaining_amount, description });
       res.status(200).json(sale);
     } else {
       res.status(404).json({ error: 'Sale not found' });

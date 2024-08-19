@@ -5,6 +5,8 @@ const SaledProduct = ({ product, onDelete, onQuantityChange }) => {
   const pricePerUnit = product.balanced_product ? (product.price / 1000) : product.price;
   const totalPrice = (pricePerUnit * product.quantity).toFixed(2);
 
+
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-4">
