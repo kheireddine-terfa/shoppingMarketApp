@@ -3,7 +3,7 @@ import SideBarItem from './SideBarItem'
 
 const HomeSideBar = () => {
   return (
-    <aside className="bg-[#003248e3] text-white w-64 min-h-screen p-4 z-30">
+    <aside className="bg-[#003248e3] text-white w-64 min-h-screen p-4 z-0 pt-20">
       <nav>
         <ul className="space-y-2">
           <SideBarItem text="Nouvelle vente" url="/sales" />

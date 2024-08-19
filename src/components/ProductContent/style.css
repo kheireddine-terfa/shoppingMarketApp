@@ -1,0 +1,300 @@
+.text-primary {
+  --tw-text-opacity: 1;
+  color: rgb(53 123 255 / var(--tw-text-opacity));
+}
+
+.text-primary-light {
+  --tw-text-opacity: 1;
+  color: rgb(235 242 255 / var(--tw-text-opacity));
+}
+
+.text-red-500 {
+  --tw-text-opacity: 1;
+  color: rgb(239 68 68 / var(--tw-text-opacity));
+}
+
+.text-secondary {
+  --tw-text-opacity: 1;
+  color: rgb(213 218 224 / var(--tw-text-opacity));
+}
+
+.text-secondary-dark {
+  --tw-text-opacity: 1;
+  color: rgb(155 167 181 / var(--tw-text-opacity));
+}
+
+.text-secondary-light {
+  --tw-text-opacity: 1;
+  color: rgb(251 251 252 / var(--tw-text-opacity));
+}
+
+.text-stone-400 {
+  --tw-text-opacity: 1;
+  color: rgb(168 162 158 / var(--tw-text-opacity));
+}
+
+.text-stone-500 {
+  --tw-text-opacity: 1;
+  color: rgb(120 113 108 / var(--tw-text-opacity));
+}
+
+.text-stone-600 {
+  --tw-text-opacity: 1;
+  color: rgb(87 83 78 / var(--tw-text-opacity));
+}
+
+.text-success {
+  --tw-text-opacity: 1;
+  color: rgb(76 175 80 / var(--tw-text-opacity));
+}
+
+.text-success-light {
+  --tw-text-opacity: 1;
+  color: rgb(237 247 237 / var(--tw-text-opacity));
+}
+
+.text-warning {
+  --tw-text-opacity: 1;
+  color: rgb(248 161 62 / var(--tw-text-opacity));
+}
+
+.text-warning-light {
+  --tw-text-opacity: 1;
+  color: rgb(254 246 236 / var(--tw-text-opacity));
+}
+.text-danger {
+  --tw-text-opacity: 1;
+  color: rgb(250 64 64 / var(--tw-text-opacity));
+}
+
+.text-danger-light {
+  --tw-text-opacity: 1;
+  color: rgb(254 236 236 / var(--tw-text-opacity));
+}
+
+.text-dark {
+  --tw-text-opacity: 1;
+  color: rgb(12 25 59 / var(--tw-text-opacity));
+}
+
+.text-dark-light {
+  --tw-text-opacity: 1;
+  color: rgb(216 225 247 / var(--tw-text-opacity));
+}
+
+.bg-cyan-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(6 182 212 / var(--tw-bg-opacity));
+}
+
+.bg-danger {
+  --tw-bg-opacity: 1;
+  background-color: rgb(250 64 64 / var(--tw-bg-opacity));
+}
+
+.bg-danger-dark {
+  --tw-bg-opacity: 1;
+  background-color: rgb(236 6 6 / var(--tw-bg-opacity));
+}
+
+.bg-danger-light {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 236 236 / var(--tw-bg-opacity));
+}
+
+.bg-dark {
+  --tw-bg-opacity: 1;
+  background-color: rgb(12 25 59 / var(--tw-bg-opacity));
+}
+
+.bg-dark-dark {
+  --tw-bg-opacity: 1;
+  background-color: rgb(9 19 45 / var(--tw-bg-opacity));
+}
+
+.bg-dark-light {
+  --tw-bg-opacity: 1;
+  background-color: rgb(216 225 247 / var(--tw-bg-opacity));
+}
+
+.bg-dark\/25 {
+  background-color: rgb(12 25 59 / 0.25);
+}
+
+.bg-gray-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(243 244 246 / var(--tw-bg-opacity));
+}
+
+.bg-gray-200 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(229 231 235 / var(--tw-bg-opacity));
+}
+
+.bg-green-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(34 197 94 / var(--tw-bg-opacity));
+}
+
+.bg-indigo-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(129 140 248 / var(--tw-bg-opacity));
+}
+
+.bg-info {
+  --tw-bg-opacity: 1;
+  background-color: rgb(74 199 243 / var(--tw-bg-opacity));
+}
+
+.bg-info-dark {
+  --tw-bg-opacity: 1;
+  background-color: rgb(15 173 229 / var(--tw-bg-opacity));
+}
+
+.bg-info-light {
+  --tw-bg-opacity: 1;
+  background-color: rgb(237 249 254 / var(--tw-bg-opacity));
+}
+
+.bg-light {
+  --tw-bg-opacity: 1;
+  background-color: rgb(249 250 252 / var(--tw-bg-opacity));
+}
+
+.bg-light-dark {
+  --tw-bg-opacity: 1;
+  background-color: rgb(242 243 244 / var(--tw-bg-opacity));
+}
+
+.bg-light-light {
+  --tw-bg-opacity: 1;
+  background-color: rgb(249 250 252 / var(--tw-bg-opacity));
+}
+
+.bg-light\/30 {
+  background-color: rgb(249 250 252 / 0.3);
+}
+
+.bg-lime-50 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(247 254 231 / var(--tw-bg-opacity));
+}
+
+.bg-neutral-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(245 245 245 / var(--tw-bg-opacity));
+}
+
+.bg-neutral-900 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(23 23 23 / var(--tw-bg-opacity));
+}
+
+.bg-primary {
+  --tw-bg-opacity: 1;
+  background-color: rgb(53 123 255 / var(--tw-bg-opacity));
+}
+
+.bg-primary-dark {
+  --tw-bg-opacity: 1;
+  background-color: rgb(0 82 237 / var(--tw-bg-opacity));
+}
+
+.bg-primary-light {
+  --tw-bg-opacity: 1;
+  background-color: rgb(235 242 255 / var(--tw-bg-opacity));
+}
+
+.bg-purple-700 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(126 34 206 / var(--tw-bg-opacity));
+}
+
+.bg-red-50 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 242 242 / var(--tw-bg-opacity));
+}
+
+.bg-secondary {
+  --tw-bg-opacity: 1;
+  background-color: rgb(213 218 224 / var(--tw-bg-opacity));
+}
+
+.bg-secondary-dark {
+  --tw-bg-opacity: 1;
+  background-color: rgb(155 167 181 / var(--tw-bg-opacity));
+}
+
+.bg-secondary-light {
+  --tw-bg-opacity: 1;
+  background-color: rgb(251 251 252 / var(--tw-bg-opacity));
+}
+
+.bg-secondary\/25 {
+  background-color: rgb(213 218 224 / 0.25);
+}
+
+.bg-secondary\/60 {
+  background-color: rgb(213 218 224 / 0.6);
+}
+
+.bg-stone-700\/70 {
+  background-color: rgb(68 64 60 / 0.7);
+}
+
+.bg-success {
+  --tw-bg-opacity: 1;
+  background-color: rgb(76 175 80 / var(--tw-bg-opacity));
+}
+
+.bg-success-dark {
+  --tw-bg-opacity: 1;
+  background-color: rgb(59 135 62 / var(--tw-bg-opacity));
+}
+
+.bg-success-light {
+  --tw-bg-opacity: 1;
+  background-color: rgb(237 247 237 / var(--tw-bg-opacity));
+}
+
+.bg-transparent {
+  background-color: transparent;
+}
+
+.bg-warning {
+  --tw-bg-opacity: 1;
+  background-color: rgb(248 161 62 / var(--tw-bg-opacity));
+}
+
+.bg-warning-dark {
+  --tw-bg-opacity: 1;
+  background-color: rgb(230 127 8 / var(--tw-bg-opacity));
+}
+
+.bg-warning-light {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 246 236 / var(--tw-bg-opacity));
+}
+
+.bg-white {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+}
+
+.bg-white\/20 {
+  background-color: rgb(255 255 255 / 0.2);
+}
+
+.bg-white\/\[\.15\] {
+  background-color: rgb(255 255 255 / 0.15);
+}
+
+.bg-yellow-50 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 252 232 / var(--tw-bg-opacity));
+}
+
+.bg-zinc-900 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(24 24 27 / var(--tw-bg-opacity));
+}
