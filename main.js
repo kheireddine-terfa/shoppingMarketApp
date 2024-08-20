@@ -21,6 +21,8 @@ dotenv.config({ path: './config.env' }) //read the variables from this file and 
 server.use(express.urlencoded({ extended: true }))
 server.use(express.json())
 server.use(cors())
+// Serve static files from the "public" directory
+server.use('/images', express.static(path.join(__dirname, 'public/images')))
 
 server.use('/api', userRoutes)
 server.use('/api/products', productRoutes)

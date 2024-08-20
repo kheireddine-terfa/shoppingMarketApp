@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require('express')
 const {
   createProduct,
   getProducts,
@@ -6,30 +6,33 @@ const {
   updateProduct,
   deleteProduct,
   getProductsWithoutBarcode,
-  getProductByBarcode
-} = require('../controllers/productController');
+  getProductByBarcode,
+  uploadProductPhoto,
+  deleteAllProducts,
+} = require('../controllers/productController')
 
-const router = express.Router();
+const router = express.Router()
 
 // Create a new product
-router.post('/', createProduct);
+router.post('/', uploadProductPhoto, createProduct)
 
 // Get all products
-router.get('/', getProducts);
-
+router.get('/', getProducts)
+// Delete All Products :
+router.delete('/', deleteAllProducts)
 // Get products without barcode
-router.get('/no-barcode', getProductsWithoutBarcode);
+router.get('/no-barcode', getProductsWithoutBarcode)
 
 // Get a product by barcode (place this before the ID route)
-router.get('/barcode/:barcode', getProductByBarcode);
+router.get('/barcode/:barcode', getProductByBarcode)
 
 // Get a single product by ID
-router.get('/:id', getProductById);
+router.get('/:id', getProductById)
 
 // Update a product by ID
-router.put('/:id', updateProduct);
+router.put('/:id', updateProduct)
 
 // Delete a product by ID
-router.delete('/:id', deleteProduct);
+router.delete('/:id', deleteProduct)
 
-module.exports = router;
+module.exports = router

@@ -37,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN, // Changed to BOOLEAN
       allowNull: true,
     },
-  });
+  })
 
-  return Product;
-};
+  return Product
+}
