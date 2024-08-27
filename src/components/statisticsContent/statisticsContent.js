@@ -26,8 +26,9 @@ const StatisticsContent = () => {
   const [seriesData2, setSeriesData2] = useState([]);
 
   const handleDateChange = async (date) => {
-    const formattedDate = date.format('YYYY-MM');
-    const currentMonth = formattedDate; // Format YYYY-MM
+    const formattedDate = date.format('YYYY-MM-DD');
+    const currentMonth = formattedDate.substring(0, 7); // Extracts "YYYY-MM"
+
 
     try {
       const [
