@@ -19,6 +19,7 @@ import HomePage from './pages/HomePage'
 import ProductsPage from './pages/ProductsPage'
 import SalesPage from './pages/SalesPage'
 import SuppliersPage from './pages/SuppliersPage'
+import StatisticsPage from './pages/StatisticsPage'
 const App = () => {
   return (
     <div className=" app-container bg-zinc-100">
@@ -30,6 +31,8 @@ const App = () => {
           <Route path="/sales" element={<SalesPage />}></Route>
           <Route path="/products" element={<ProductsPage />}></Route>
           <Route path="/suppliers" element={<SuppliersPage/>}></Route>
+          <Route path="/statistics" element={<StatisticsPage/>}></Route>
+
         </Routes>
       </BrowserRouter>
     </div>

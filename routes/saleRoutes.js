@@ -4,7 +4,15 @@ const {
   getSales,
   getSaleById,
   updateSale,
-  deleteSale
+  deleteSale,
+  getSalesCountByDate,
+  getSumOfPaidAmounts,
+  getTotalrevenue,
+  getSumRemainingAmount,
+  getTotalIncomeByDate,
+  getTopUnbalancedProductsByDate,
+  getTopProfitableUnbalancedProductsByDate
+
 } = require('../controllers/saleController');
 
 const router = express.Router();
@@ -23,5 +31,23 @@ router.put('/:id', updateSale);
 
 // Delete a sale by ID
 router.delete('/:id', deleteSale);
+
+router.get('/count/:date', getSalesCountByDate);
+
+router.get('/sum-paid-amounts/:date', getSumOfPaidAmounts);
+
+router.get('/sum-total-amounts/:date', getTotalrevenue);
+
+router.get('/sum-remaining-amounts/:date', getSumRemainingAmount);
+
+router.get('/sum-total-incomes/:date', getTotalIncomeByDate);
+
+router.get('/top-saled-unbalanced-products/:date', getTopUnbalancedProductsByDate);
+
+router.get('/top-profit-unbalanced-products/:date', getTopProfitableUnbalancedProductsByDate);
+
+
+
+
 
 module.exports = router;

@@ -30,6 +30,7 @@ const createProduct = async (req, res) => {
     const {
       name,
       price,
+      purchase_price,
       bare_code,
       quantity,
       min_quantity,
@@ -44,6 +45,7 @@ const createProduct = async (req, res) => {
     const product = await Product.create({
       name,
       price,
+      purchase_price,
       bare_code,
       quantity,
       min_quantity,

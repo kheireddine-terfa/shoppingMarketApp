@@ -99,6 +99,7 @@ const ProductsContent = () => {
       formData.append('name', newProduct.name)
       formData.append('bare_code', newProduct.bare_code)
       formData.append('price', newProduct.price)
+      formData.append('purchase_price', 50)
       formData.append('quantity', newProduct.quantity)
       formData.append('min_quantity', newProduct.min_quantity)
       formData.append('hasBarCode', newProduct.hasBarCode)
