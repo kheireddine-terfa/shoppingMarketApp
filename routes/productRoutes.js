@@ -30,7 +30,7 @@ router.get('/barcode/:barcode', getProductByBarcode)
 router.get('/:id', getProductById)
 
 // Update a product by ID
-router.put('/:id', updateProduct)
+router.put('/:id', uploadProductPhoto, updateProduct)
 
 // Delete a product by ID
 router.delete('/:id', deleteProduct)

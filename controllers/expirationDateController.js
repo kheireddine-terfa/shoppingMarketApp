@@ -2,8 +2,8 @@ const { ExpirationDate } = require('../models');
 
 const createExpirationDate = async (req, res) => {
   try {
-    const { date, alert_interval } = req.body;
-    const expirationDate = await ExpirationDate.create({ date, alert_interval });
+    const { date, alert_interval , productId } = req.body;
+    const expirationDate = await ExpirationDate.create({ date, alert_interval , productId });
     res.status(201).json(expirationDate);
   } catch (error) {
     res.status(500).json({ error: 'Failed to create expiration date' });

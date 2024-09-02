@@ -1,29 +1,23 @@
 import React from 'react'
-import ProductImage from './ProductImage'
-import ProductTitle from './ProductTitle'
+import ProductImage from '../ProductContent/relatedComponents/ProductImage'
+import ProductTitle from '../ProductContent/relatedComponents/ProductTitle'
 
-const ProductRow = ({
-  imageSrc,
-  imageAlt,
-  titleHref,
-  title,
-  price,
-  sales,
-  inventoryState,
-  inventoryStateClass,
-  onDelete,
-}) => {
+const TableRow = ({ actions, dataItem }) => {
   return (
     <tr className="border-b border-dashed last:border-b-0">
       <td className="p-3 pl-0">
         <div className="flex items-center">
-          <ProductImage src={imageSrc} alt={imageAlt} />
-          <ProductTitle href={titleHref} title={title} />
+          {dataItem.imageSrc && (
+            <ProductImage src={dataItem.imageSrc} alt={dataItem.imageAlt} />
+          )}
+          {dataItem.title && (
+            <ProductTitle href={dataItem.titleHref} title={dataItem.title} />
+          )}
         </div>
       </td>
       <td className="p-3 pl-0 text-start">
         <span className="font-semibold text-light-inverse text-md/normal">
-          {price}
+          {dataItem.price}
         </span>
       </td>
       <td className="p-3 pl-0 text-start">
@@ -42,19 +36,22 @@ const ProductRow = ({
               d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"
             />
           </svg>
-          {sales}
+          {dataItem.sales}
         </span>
       </td>
       <td className="p-3 pl-0 text-start">
         <span
-          className={`text-center align-baseline inline-flex px-4 py-3 mr-auto items-center font-semibold text-[.95rem] leading-none rounded-lg ${inventoryStateClass}`}
+          className={`text-center align-baseline inline-flex px-4 py-3 mr-auto items-center font-semibold text-[.95rem] leading-none rounded-lg ${dataItem.inventoryStateClass}`}
         >
-          {inventoryState}
+          {dataItem.inventoryState}
         </span>
       </td>
       <td className="p-3 pl-0 text-start">
         <div className="flex justify-start gap-3">
-          <button onClick={onDelete} className="text-danger">
+          <button
+            onClick={() => actions.onDelete(dataItem.currentProduct.id)}
+            className="text-danger"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -70,7 +67,10 @@ const ProductRow = ({
               />
             </svg>
           </button>
-          <a href="/">
+          <button
+            onClick={() => actions.onUpdate(dataItem.currentProduct)}
+            className="text-primary"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -85,11 +85,15 @@ const ProductRow = ({
                 d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
               />
             </svg>
-          </a>
+          </button>
         </div>
       </td>
+      {/* details button */}
       <td className="p-3 pl-0 text-start">
-        <button className="ml-auto relative text-secondary-dark bg-light-dark hover:text-primary flex items-center h-[25px] w-[25px] text-base font-medium leading-normal text-center align-middle cursor-pointer rounded-2xl transition-colors duration-200 ease-in-out shadow-none border-0 justify-center">
+        <button
+          className="ml-auto relative text-secondary-dark bg-light-dark hover:text-primary flex items-center h-[25px] w-[25px] text-base font-medium leading-normal text-center align-middle cursor-pointer rounded-2xl transition-colors duration-200 ease-in-out shadow-none border-0 justify-center"
+          onClick={() => actions.onShowDetails(dataItem)}
+        >
           <span className="flex items-center justify-center p-0 m-0 leading-none shrink-0 ">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -112,4 +116,4 @@ const ProductRow = ({
   )
 }
 
-export default ProductRow
+export default TableRow
