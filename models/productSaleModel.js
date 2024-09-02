@@ -20,6 +20,10 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
     },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
   });
 
   ProductSale.afterCreate(async (productSale) => {

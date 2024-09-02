@@ -6,6 +6,8 @@ import SaledProduct from './SaledProduct'
 import Category from './Category'
 import QuantityModal from './QuantityModal'
 import BarcodeScanner from '../barcodeScanner/BarcodeScanner'
+import dayjs from 'dayjs';
+
 
 const SalesContent = () => {
   const [categories, setCategories] = useState([])
@@ -117,68 +119,88 @@ const SalesContent = () => {
   const handleValidateSaleClick = async () => {
     const confirmSale = window.confirm(
       'Are you sure you want to confirm this sale?',
-    )
-
+    );
+  
     if (!confirmSale) {
-      return // Exit the function if the user cancels
+      return; // Exit the function if the user cancels
     }
-
+  
     try {
+      // Calculate totalPrice
       const totalPrice = productsToSale
         .reduce((sum, product) => {
           const productPrice = product.balanced_product
             ? product.price * (product.quantity / 1000)
-            : product.price * product.quantity
-          return sum + productPrice
+            : product.price * product.quantity;
+          return sum + productPrice;
         }, 0)
-        .toFixed(2)
-
-      if (isPaid) {
-        setRemainingAmount(0)
-        setPaidAmount(parseFloat(totalPrice)) // Ensure paidAmount matches totalPrice if paid
+        .toFixed(2);
+  
+      console.log('Total Price:', totalPrice); // Debug totalPrice
+  
+      // Determine paidAmount and remainingAmount
+      let updatedPaidAmount = 0;
+      let updatedRemainingAmount = parseFloat(totalPrice);
+  
+      if (isPaid === true) {
+        updatedPaidAmount = parseFloat(totalPrice); // Set paidAmount to totalPrice if paid
+        updatedRemainingAmount = 0; // Remaining amount should be 0
       } else {
-        setRemainingAmount((totalPrice - paidAmount).toFixed(2))
+        updatedPaidAmount = parseFloat(paidAmount) || 0;
+        updatedRemainingAmount = parseFloat(totalPrice) - updatedPaidAmount;
       }
-
-      // Create the sale
+  
+      console.log('Updated Paid Amount:', updatedPaidAmount); // Debug paidAmount
+      console.log('Updated Remaining Amount:', updatedRemainingAmount); // Debug remainingAmount
+  
+      // Update state
+      setPaidAmount(updatedPaidAmount);
+      setRemainingAmount(updatedRemainingAmount);
+      
       const saleData = {
-        date: new Date(),
+        date: dayjs().format('YYYY-MM-DD'),
         amount: parseFloat(totalPrice),
-        paid_amount: paidAmount,
-        remaining_amount: parseFloat(remainingAmount),
+        paid_amount: updatedPaidAmount,
+        remaining_amount: updatedRemainingAmount,
         description: description,
-      }
-
+      };
+      
+  
+      console.log('Sale Data:', saleData);
+  
+      // Create sale
       const saleResponse = await axios.post(
         'http://localhost:3001/api/sales',
         saleData,
-      )
-      const createdSale = saleResponse.data
-      setSale(createdSale)
-
-      // Create the ProductSale entries
+      );
+      const createdSale = saleResponse.data;
+      setSale(createdSale);
+  
+      // Create ProductSale entries
       const productSalePromises = productsToSale.map((product) => {
         return axios.post('http://localhost:3001/api/product-sales', {
           quantity: product.quantity,
           productId: product.id,
           saleId: createdSale.id,
-        })
-      })
-
-      const productsSaleResponse = await Promise.all(productSalePromises)
-      setProductsSale(productsSaleResponse.map((response) => response.data))
-
+        });
+      });
+  
+      const productsSaleResponse = await Promise.all(productSalePromises);
+      setProductsSale(productsSaleResponse.map((response) => response.data));
+  
       console.log('Sale and ProductSales successfully created', {
         sale: createdSale,
         productsSale: productsSaleResponse,
-      })
-
+      });
+  
       // Reload the app after the sale is confirmed and processed
-      window.location.reload()
+      // window.location.reload();
     } catch (error) {
-      console.error('Failed to validate sale', error)
+      console.error('Failed to validate sale', error);
     }
-  }
+  };
+  
+  
 
   const handleBarcodeScanned = async (barcode) => {
     try {

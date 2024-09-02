@@ -13,6 +13,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT,
       allowNull: false,
     },
+    purchase_price: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
     bare_code: {
       type: DataTypes.STRING,
       allowNull: true,
