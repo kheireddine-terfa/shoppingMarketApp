@@ -10,10 +10,9 @@ const HomeSideBar = () => {
           <SideBarItem text="Produits" url="/products" />
           <SideBarItem text="Fournisseurs" url="/suppliers" />
           <SideBarItem text="Statistiques" url="/statistics" />
-
+          <SideBarItem text="Categories" url="/categories" />
           <SideBarItem text="Dépenses" />
           <SideBarItem text="Ventes" />
-
         </ul>
       </nav>
     </aside>

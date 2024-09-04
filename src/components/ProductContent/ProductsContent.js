@@ -400,6 +400,32 @@ const ProductsContent = () => {
       required: true,
     },
   ]
+  const headerConfig = [
+    {
+      title: 'Title',
+      class: 'pb-3 text-start min-w-[175px]',
+    },
+    {
+      title: 'Price',
+      class: 'pb-3 text-start min-w-[100px]',
+    },
+    {
+      title: 'Sales',
+      class: 'pb-3 text-start min-w-[100px]',
+    },
+    {
+      title: 'Inventory State',
+      class: 'pb-3 text-start min-w-[175px]',
+    },
+    {
+      title: 'Manage',
+      class: 'pb-3 pr-12 text-start min-w-[175px]',
+    },
+    {
+      title: 'Details',
+      class: 'pb-3 text-end min-w-[50px]',
+    },
+  ]
   const getInventoryStateClass = (state) => {
     switch (state) {
       case 'In Stock':
@@ -415,7 +441,7 @@ const ProductsContent = () => {
   // Find the category name based on the categoryId
   const getCategoryName = (categoryId) => {
     const category = categories.find((cat) => cat.id === categoryId)
-    return category ? category.name : 'Unknown'
+    return category ? category.name : 'No Category'
   }
   const modalData =
     selectedProduct && selectedProduct.currentProduct
@@ -515,7 +541,12 @@ const ProductsContent = () => {
                 </button>
               </div>
             </div>
-            <Table data={filteredProducts} actions={actions} />
+            <Table
+              data={filteredProducts}
+              actions={actions}
+              headerConfig={headerConfig}
+              tableTitle={'products'}
+            />
           </div>
         </div>
       </div>
@@ -524,6 +555,7 @@ const ProductsContent = () => {
           onSubmit={handleAddSubmit}
           onCancel={() => setShowModal(false)}
           InputsConfig={InputsConfig}
+          title={'Product'}
         />
       )}
       {showDeleteModal && (

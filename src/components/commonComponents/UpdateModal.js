@@ -1,18 +1,17 @@
 import React from 'react'
 import FormInput from './FormInput'
 
-const AddModal = ({ onSubmit, onCancel, InputsConfig, title }) => {
+const UpdateModal = ({ title, InputsConfig, onSubmit, onCancel }) => {
   // Separate inputs into two columns if more than 6 inputs
   const firstColumnInputs =
     InputsConfig.length > 7 ? InputsConfig.slice(0, 7) : InputsConfig
-
   const secondColumnInputs =
     InputsConfig.length > 7 ? InputsConfig.slice(7) : []
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-2/3">
-        <h2 className="text-xl font-semibold mb-4">Add New {title}</h2>
+        <h2 className="text-xl font-semibold mb-4">Update {title}</h2>
         <form onSubmit={onSubmit}>
           <div className="grid grid-cols-2 gap-6">
             <div>
@@ -20,7 +19,7 @@ const AddModal = ({ onSubmit, onCancel, InputsConfig, title }) => {
                 <FormInput
                   key={index}
                   label={inputConfig.label}
-                  type={inputConfig.type || 'text'} // Default to 'text' if type is not specified
+                  type={inputConfig.type || 'text'}
                   value={inputConfig.value}
                   checked={inputConfig.checked}
                   onChange={inputConfig.onChange}
@@ -38,7 +37,7 @@ const AddModal = ({ onSubmit, onCancel, InputsConfig, title }) => {
                   <FormInput
                     key={index}
                     label={inputConfig.label}
-                    type={inputConfig.type || 'text'} // Default to 'text' if type is not specified
+                    type={inputConfig.type || 'text'}
                     value={inputConfig.value}
                     checked={inputConfig.checked}
                     onChange={inputConfig.onChange}
@@ -62,9 +61,9 @@ const AddModal = ({ onSubmit, onCancel, InputsConfig, title }) => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-green-600 text-white rounded-lg"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg"
             >
-              Add {title}
+              Update
             </button>
           </div>
         </form>
@@ -73,4 +72,4 @@ const AddModal = ({ onSubmit, onCancel, InputsConfig, title }) => {
   )
 }
 
-export default AddModal
+export default UpdateModal
