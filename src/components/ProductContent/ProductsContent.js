@@ -33,6 +33,18 @@ const ProductsContent = () => {
     alertInterval: '',
   }
   const [formData, setFormData] = useState(initialFormData)
+  const checkForAlert = (expirationDates) => {
+    if (!expirationDates[0]) return null
+
+    const currentDate = new Date()
+    const expDate = new Date(expirationDates[0].date)
+    const alertDate = new Date(expDate)
+    alertDate.setDate(alertDate.getDate() - expirationDates[0].alert_interval)
+
+    return currentDate >= alertDate && currentDate < expDate
+      ? 'Near Expiration !'
+      : null
+  }
   // Fetch products from the backend
 
   const fetchProducts = async () => {
@@ -67,11 +79,11 @@ const ProductsContent = () => {
             titleHref: `/product/${product.id}`,
             title: product.name,
             price: `${product.price} DA`,
-            sales: 'N/A',
             inventoryState,
             inventoryStateClass,
             currentProduct: product,
             alert_interval: product.ExpirationDates[0].alert_interval,
+            expAlert: checkForAlert(product.ExpirationDates),
           }
         }),
       )
@@ -91,6 +103,7 @@ const ProductsContent = () => {
   useEffect(() => {
     fetchProducts()
     fetchCategories()
+    // eslint-disable-next-line
   }, [])
   const handleDeleteClick = (product) => {
     setSelectedProduct(product) // Ensure the correct product object is set
@@ -178,7 +191,6 @@ const ProductsContent = () => {
           titleHref: `/product/${addedProduct.id}`,
           title: addedProduct.name,
           price: `${addedProduct.price} DA`,
-          sales: 'N/A',
           inventoryState:
             addedProduct.quantity > addedProduct.min_quantity
               ? 'In Stock'
@@ -410,7 +422,7 @@ const ProductsContent = () => {
       class: 'pb-3 text-start min-w-[100px]',
     },
     {
-      title: 'Sales',
+      title: 'Expiration Alert',
       class: 'pb-3 text-start min-w-[100px]',
     },
     {
@@ -450,6 +462,10 @@ const ProductsContent = () => {
             label: 'Price',
             value: `${selectedProduct.currentProduct.price} DA`,
           },
+          {
+            label: 'Purchase Price',
+            value: `${selectedProduct.currentProduct.purchase_price} DA`,
+          },
           { label: 'Quantity', value: selectedProduct.currentProduct.quantity },
           {
             label: 'Min Quantity',
@@ -459,6 +475,10 @@ const ProductsContent = () => {
             label: 'Inventory State',
             value: selectedProduct.inventoryState,
             className: getInventoryStateClass(selectedProduct.inventoryState),
+          },
+          {
+            label: 'Alert',
+            value: selectedProduct.expAlert,
           },
           {
             label: 'Category',

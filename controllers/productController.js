@@ -77,6 +77,7 @@ const getProducts = async (req, res) => {
       include: [
         {
           model: ExpirationDate,
+          order: [['date', 'ASC']],
           attributes: ['alert_interval', 'date'],
         },
       ],
