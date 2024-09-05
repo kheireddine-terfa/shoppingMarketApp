@@ -17,12 +17,12 @@ const StatisticsContent = () => {
   const [monthlySales, setMonthlySales] = useState(0)
   const [dailyRevenues, setDailyRevenues] = useState(0)
   const [monthlyRevenues, setMonthlyRevenues] = useState(0)
-  const [dailyCash, setdailyCash] = useState(0)
-  const [monthlyCash, setmonthlyCash] = useState(0)
+  const [dailyCash, setDailyCash] = useState(0)
+  const [monthlyCash, setMonthlyCash] = useState(0)
   const [dailyRemainingAmounts, setDailyRemainingAmounts] = useState(0)
-  const [monthlyRemainingAmounts, setmonthlyRemainingAmounts] = useState(0)
+  const [monthlyRemainingAmounts, setMonthlyRemainingAmounts] = useState(0)
   const [dailyIncome, setDailyIncome] = useState(0)
-  const [monthlyIncome, setmonthlyIncome] = useState(0)
+  const [monthlyIncome, setMonthlyIncome] = useState(0)
   // eslint-disable-next-line
   const [error, setError] = useState(null)
 
@@ -85,32 +85,25 @@ const StatisticsContent = () => {
         ),
       ])
 
-      setDailySales(dailySales.data.salesCount)
-      setMonthlySales(monthlySales.data.salesCount)
-      setDailyRevenues(dailyRevenues.data.revenuesSum + ' DA')
-      setMonthlyRevenues(monthlyRevenues.data.revenuesSum + ' DA')
-      setdailyCash(dailyCash.data.cash + ' DA')
-      setmonthlyCash(monthlyCash.data.cash + ' DA')
-      setDailyRemainingAmounts(
-        dailyRemainingAmounts.data.sumRemainingAmount + ' DA',
-      )
-      setmonthlyRemainingAmounts(
-        monthlyRemainingAmounts.data.sumRemainingAmount + ' DA',
-      )
-      setDailyIncome(dailyIncome.data.totalIncome + ' DA')
-      setmonthlyIncome(monthlyIncome.data.totalIncome + ' DA')
+      // Use fallback values (0) for any null or undefined data
+      setDailySales(dailySales.data.salesCount || 0)
+      setMonthlySales(monthlySales.data.salesCount || 0)
+      setDailyRevenues(dailyRevenues.data.revenuesSum ? dailyRevenues.data.revenuesSum + ' DA' : '0 DA')
+      setMonthlyRevenues(monthlyRevenues.data.revenuesSum ? monthlyRevenues.data.revenuesSum + ' DA' : '0 DA')
+      setDailyCash(dailyCash.data.cash ? dailyCash.data.cash + ' DA' : '0 DA')
+      setMonthlyCash(monthlyCash.data.cash ? monthlyCash.data.cash + ' DA' : '0 DA')
+      setDailyRemainingAmounts(dailyRemainingAmounts.data.sumRemainingAmount ? dailyRemainingAmounts.data.sumRemainingAmount + ' DA' : '0 DA')
+      setMonthlyRemainingAmounts(monthlyRemainingAmounts.data.sumRemainingAmount ? monthlyRemainingAmounts.data.sumRemainingAmount + ' DA' : '0 DA')
+      setDailyIncome(dailyIncome.data.totalIncome ? dailyIncome.data.totalIncome + ' DA' : '0 DA')
+      setMonthlyIncome(monthlyIncome.data.totalIncome ? monthlyIncome.data.totalIncome + ' DA' : '0 DA')
 
       // Set data for the first bar chart
-      const products1 = topUnbalancedProducts.data.TopSaledProducts
+      const products1 = topUnbalancedProducts.data.TopSaledProducts || []
       setXAxisData1([{ scaleType: 'band', data: products1.map((p) => p.name) }])
       setSeriesData1([{ data: products1.map((p) => p.total_quantity_sold) }])
 
-      console.log(topUnbalancedProducts.data.TopSaledProducts)
-      console.log(seriesData1)
-
       // Set data for the second bar chart
-      const products2 =
-        topIncomedUnbalancedProducts.data.topProfitableUnbalancedProducts
+      const products2 = topIncomedUnbalancedProducts.data.topProfitableUnbalancedProducts || []
       setXAxisData2([{ scaleType: 'band', data: products2.map((p) => p.name) }])
       setSeriesData2([{ data: products2.map((p) => p.total_profit) }])
 
@@ -120,14 +113,14 @@ const StatisticsContent = () => {
       setError('Failed to fetch sales count.')
       setDailySales(0)
       setMonthlySales(0)
-      setDailyRevenues(0)
-      setMonthlyRevenues(0)
-      setdailyCash(0)
-      setmonthlyCash(0)
-      setDailyRemainingAmounts(0)
-      setmonthlyRemainingAmounts(0)
-      setDailyIncome(0)
-      setmonthlyIncome(0)
+      setDailyRevenues('0 DA')
+      setMonthlyRevenues('0 DA')
+      setDailyCash('0 DA')
+      setMonthlyCash('0 DA')
+      setDailyRemainingAmounts('0 DA')
+      setMonthlyRemainingAmounts('0 DA')
+      setDailyIncome('0 DA')
+      setMonthlyIncome('0 DA')
     }
   }
 
@@ -208,15 +201,11 @@ const StatisticsContent = () => {
         <div className="flex flex-col gap-0 mb-8 ">
           <div className="flex gap-4">
             <div className="bg-white flex-1 h-76 shadow-xl">
-              <h3 className="font-semibold mt-4 ml-8">
-                Les produits les plus vendus ce mois-ci
-              </h3>
+              <h3 className="text-center text-black p-4">Produits les plus vendus</h3>
               <BasicBarChart xAxis={xAxisData1} series={seriesData1} />
             </div>
             <div className="bg-white flex-1 h-76 shadow-xl">
-              <h3 className="font-semibold mt-4 ml-8">
-                Les produits les plus bénéficiaires ce mois-ci en DA
-              </h3>
+              <h3 className="text-center text-black p-4">Produits les plus rentables</h3>
               <BasicBarChart xAxis={xAxisData2} series={seriesData2} />
             </div>
           </div>
