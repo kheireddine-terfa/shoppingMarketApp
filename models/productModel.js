@@ -21,10 +21,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    purchase_price: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-    },
     quantity: {
       type: DataTypes.INTEGER,
       allowNull: false,
