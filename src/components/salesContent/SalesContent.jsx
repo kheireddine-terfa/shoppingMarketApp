@@ -194,7 +194,7 @@ const SalesContent = () => {
       });
   
       // Reload the app after the sale is confirmed and processed
-      // window.location.reload();
+      window.location.reload();
     } catch (error) {
       console.error('Failed to validate sale', error);
     }
@@ -246,6 +246,7 @@ const SalesContent = () => {
             <div className="grid grid-cols-3 gap-5 gap-y-12">
               {categories.map((category) => (
                 <Category
+                  imageSrc={`/categoriesImages/${category.image}`}
                   key={category.id}
                   title={category.name}
                   onClick={() => handleCategoryClick(category)}
@@ -268,6 +269,7 @@ const SalesContent = () => {
                     onClick={() => handleProductClick(product)}
                   >
                     <img
+                      src={`/productsImages/${product.image}`}
                       alt={product.name}
                       className="mx-auto h-full object-cover "
                     />

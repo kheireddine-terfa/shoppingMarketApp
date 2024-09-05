@@ -105,6 +105,9 @@ const StatisticsContent = () => {
       setXAxisData1([{ scaleType: 'band', data: products1.map((p) => p.name) }])
       setSeriesData1([{ data: products1.map((p) => p.total_quantity_sold) }])
 
+      console.log(topUnbalancedProducts.data.TopSaledProducts)
+      console.log(seriesData1)
+
       // Set data for the second bar chart
       const products2 =
         topIncomedUnbalancedProducts.data.topProfitableUnbalancedProducts
