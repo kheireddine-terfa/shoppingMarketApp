@@ -1,27 +1,27 @@
 const express = require('express');
 const {
-  createProductSupply,
-  getProductSupplies,
-  getProductSupplyById,
-  updateProductSupply,
-  deleteProductSupply
-} = require('../controllers/productSupplyController');
+  createSupply,
+  getSupplies,
+  getSupplyById,
+  updateSupply,
+  deleteSupply
+} = require('../controllers/supplyController');
 
 const router = express.Router();
 
-// Create a new product supply
-router.post('/', createProductSupply);
+// Create a new  supply
+router.post('/', createSupply);
 
-// Get all product supplies
-router.get('/', getProductSupplies);
+// Get all  supplies
+router.get('/', getSupplies);
 
-// Get a single product supply by ID
-router.get('/:id', getProductSupplyById);
+// Get a single  supply by ID
+router.get('/:id', getSupplyById);
 
-// Update a product supply by ID
-router.put('/:id', updateProductSupply);
+// Update a  supply by ID
+router.put('/:id', updateSupply);
 
-// Delete a product supply by ID
-router.delete('/:id', deleteProductSupply);
+// Delete a  supply by ID
+router.delete('/:id', deleteSupply);
 
 module.exports = router;

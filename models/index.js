@@ -58,6 +58,9 @@ Supply.belongsToMany(Product, {
 Product.belongsToMany(Sale, { through: ProductSale, foreignKey: 'productId' })
 Sale.belongsToMany(Product, { through: ProductSale, foreignKey: 'saleId' })
 
+Supply.belongsTo(Supplier, { foreignKey: 'supplierId' })
+Supplier.hasMany(Supply, { foreignKey: 'supplierId' })
+
 // Sync database without forcing table recreation
 
 sequelize.sync({ force: false }).then(() => {

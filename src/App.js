@@ -21,6 +21,8 @@ import SalesPage from './pages/SalesPage'
 import SuppliersPage from './pages/SuppliersPage'
 import StatisticsPage from './pages/StatisticsPage'
 import CategoriesPage from './pages/CategoriesPage'
+import SuppliesPage from './pages/suppliesPage'
+
 
 const App = () => {
   return (
@@ -35,6 +37,7 @@ const App = () => {
           <Route path="/suppliers" element={<SuppliersPage />}></Route>
           <Route path="/statistics" element={<StatisticsPage />}></Route>
           <Route path="/categories" element={<CategoriesPage />}></Route>
+          <Route path="/supplies" element={<SuppliesPage />}></Route>
         </Routes>
       </BrowserRouter>
     </div>
