@@ -1,6 +1,6 @@
 import React from 'react'
 
-const DetailsModal = ({ isOpen, onClose, title, data, formatDate }) => {
+const DetailsModal = ({ isOpen, onClose, title, data, formatDate, tableData }) => {
   if (!isOpen) return null
 
   return (
@@ -41,6 +41,41 @@ const DetailsModal = ({ isOpen, onClose, title, data, formatDate }) => {
             </div>
           )}
         </div>
+
+        {/* New section to render the table */}
+        {tableData && tableData.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-2">Products Details</h3>
+            <table className="min-w-full bg-white">
+              <thead>
+                <tr>
+                  <th className="py-2 px-4 border-b-2 border-gray-200">Product</th>
+                  <th className="py-2 px-4 border-b-2 border-gray-200">Quantity</th>
+                  <th className="py-2 px-4 border-b-2 border-gray-200">Purchase Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tableData.map((item, index) => (
+                  <tr
+                    key={index}
+                    className={index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'}
+                  >
+                    <td className="py-2 px-4 border-b border-gray-200">
+                      {item.product}
+                    </td>
+                    <td className="py-2 px-4 border-b border-gray-200">
+                      {item.quantity}
+                    </td>
+                    <td className="py-2 px-4 border-b border-gray-200">
+                      {item.purchase_price}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
         <button
           onClick={onClose}
           className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
