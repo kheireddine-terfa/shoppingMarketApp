@@ -55,8 +55,21 @@ Supply.belongsToMany(Product, {
   foreignKey: 'supplyId',
 })
 
-Product.belongsToMany(Sale, { through: ProductSale, foreignKey: 'productId' })
-Sale.belongsToMany(Product, { through: ProductSale, foreignKey: 'saleId' })
+// ProductSale associations
+Product.belongsToMany(Sale, {
+  through: ProductSale,
+  foreignKey: 'productId',
+  as: 'Sales',
+})
+Sale.belongsToMany(Product, {
+  through: ProductSale,
+  foreignKey: 'saleId',
+  as: 'Products',
+})
+
+// Ensure you define the reverse association as well if needed
+ProductSale.belongsTo(Product, { foreignKey: 'productId', as: 'Product' })
+ProductSale.belongsTo(Sale, { foreignKey: 'saleId', as: 'Sale' })
 
 // Sync database without forcing table recreation
 

@@ -21,6 +21,7 @@ import SalesPage from './pages/SalesPage'
 import SuppliersPage from './pages/SuppliersPage'
 import StatisticsPage from './pages/StatisticsPage'
 import CategoriesPage from './pages/CategoriesPage'
+import OSalesPage from './pages/OSalesPage'
 
 const App = () => {
   return (
@@ -32,6 +33,7 @@ const App = () => {
           <Route path="/home" element={<HomePage />}></Route>
           <Route path="/sales" element={<SalesPage />}></Route>
           <Route path="/products" element={<ProductsPage />}></Route>
+          <Route path="/product-sales" element={<OSalesPage />}></Route>
           <Route path="/suppliers" element={<SuppliersPage />}></Route>
           <Route path="/statistics" element={<StatisticsPage />}></Route>
           <Route path="/categories" element={<CategoriesPage />}></Route>

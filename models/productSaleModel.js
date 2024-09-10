@@ -20,35 +20,39 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
     },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
-  });
+  })
 
   ProductSale.afterCreate(async (productSale) => {
     try {
       // Decrease the product quantity
-      const product = await sequelize.models.Product.findByPk(productSale.productId);
+      const product = await sequelize.models.Product.findByPk(
+        productSale.productId,
+      )
       if (product) {
-        await product.update({ quantity: product.quantity - productSale.quantity });
+        await product.update({
+          quantity: product.quantity - productSale.quantity,
+        })
       }
     } catch (error) {
-      console.error('Error updating product quantity after create:', error);
+      console.error('Error updating product quantity after create:', error)
     }
-  });
+  })
 
   ProductSale.afterDestroy(async (productSale) => {
     try {
       // Increase the product quantity
-      const product = await sequelize.models.Product.findByPk(productSale.productId);
+      const product = await sequelize.models.Product.findByPk(
+        productSale.productId,
+      )
       if (product) {
-        await product.update({ quantity: product.quantity + productSale.quantity });
+        await product.update({
+          quantity: product.quantity + productSale.quantity,
+        })
       }
     } catch (error) {
-      console.error('Error updating product quantity after delete:', error);
+      console.error('Error updating product quantity after delete:', error)
     }
-  });
+  })
 
-  return ProductSale;
-};
+  return ProductSale
+}

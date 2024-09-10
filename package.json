@@ -44,7 +44,8 @@
   "scripts": {
     "start:react": "cross-env BROWSER=none react-scripts start",
     "start:electron": "electron .",
-    "start": "concurrently \"npm run start:react\" \"npm run start:electron\""
+    "start:backend": "nodemon server.js",
+    "start": "concurrently \"npm run start:react\" \"npm run start:electron\" \"npm run start:backend\""
   },
   "eslintConfig": {
     "extends": [
@@ -69,6 +70,7 @@
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "electron": "^31.3.1",
+    "nodemon": "^3.1.4",
     "wait-on": "^7.2.0"
   }
 }
