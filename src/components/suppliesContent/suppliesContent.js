@@ -4,52 +4,82 @@ import Table from '../commonComponents/Table'
 import AddModal from '../commonComponents/AddModal'
 import ConfirmModal from '../commonComponents/ConfirmModal'
 import UpdateModal from '../commonComponents/UpdateModal'
+import AddModalWithProducts from './relatedComponenets/addModalWithProducts'
+import axios from 'axios'
+import DetailsModal from '../commonComponents/DetailsModal'
 // check the controller :
 const SuppliesContent = () => {
   //----------- States:
   const [supplies, setSupplies] = useState([])
+  const [suppliers, setSuppliers] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [selectedSupply, setSelectedSupply] = useState(null)
+  const [selectedSupplyProducts, setSelectedSupplyProducts] = useState([])
+  const [selectedSupplier, setSelectedSupplier] = useState(null)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [lastSupplyId,setLastSupplyId ] = useState(0)
   const initialFormData = {
     date: '',
     amount: '',
     description: '',
     paid_amount: '',
     remaining_amount: '',
+    supplierId:''
   }
   const [formData, setFormData] = useState(initialFormData)
-  // Fetch supplies from the backend
 
-  const fetchSupplies = async () => {
+  const fetchSuppliers = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/supplies')
+      const response = await fetch('http://localhost:3001/api/suppliers')
       const data = await response.json()
-      console.log('data', data)
-      setSupplies(
-        data.map((supply) => {
-          return {
-            id: supply.id,
-            amount: supply.amount,
-            description: supply.description,
-            paid_amount: supply.paid_amount,
-            remaining_amount: supply.remaining_amount,
-            titleHref: `/supplies/${supply.id}`,
-            date: supply.date,
-            currentSupply: supply,
-          }
-        }),
-      )
+      setSuppliers(data)
     } catch (error) {
-      console.error('Error fetching supplies:', error)
+      console.error('Error fetching categories:', error)
     }
   }
+
+  // Fetch supplies from the backend
+  const fetchSupplies = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/supplies');
+      const data = await response.json();
+      console.log('data', data);
+
+      // Map the data as before
+      const mappedSupplies = data.map((supply) => {
+        return {
+          id: supply.id,
+          amount: supply.amount,
+          description: supply.description,
+          paid_amount: supply.paid_amount,
+          remaining_amount: supply.remaining_amount,
+          titleHref: `/supplies/${supply.id}`,
+          date: supply.date,
+          currentSupply: supply,
+        };
+      });
+
+      // Set the supplies state
+      setSupplies(mappedSupplies);
+
+      // Get the last supply ID
+      if (data.length > 0) {
+        const lastSupply = data[data.length - 1]; // Assuming the last element in data is the latest
+        setLastSupplyId(lastSupply.id);
+      }
+    } catch (error) {
+      console.error('Error fetching supplies:', error);
+    }
+  };
   useEffect(() => {
     fetchSupplies()
+    fetchSuppliers()
   }, [])
+
   const handleDeleteClick = (supply) => {
     setSelectedSupply(supply) // Ensure the correct supply object is set
     setShowDeleteModal(true)
@@ -97,7 +127,7 @@ const SuppliesContent = () => {
     }
   }
   // Handle add supply
-  const handleAddSupply = async (newSupply) => {
+  const handleAddSupply = async (newSupply,newSupplyProducts) => {
     try {
       const formData = {
         date: newSupply.date,
@@ -105,8 +135,8 @@ const SuppliesContent = () => {
         description: newSupply.description,
         paid_amount: newSupply.paid_amount,
         remaining_amount: newSupply.remaining_amount,
+        supplierId : newSupply.supplierId
       }
-
       const response = await fetch('http://localhost:3001/api/supplies', {
         method: 'POST',
         headers: {
@@ -114,9 +144,20 @@ const SuppliesContent = () => {
         },
         body: JSON.stringify(formData), // Send the FormData
       })
-      if (response.ok) {
-        const addedSupply = await response.json()
 
+      if (response.ok) {
+        const supplyProducrsPromises = newSupplyProducts.map((nsp) => {
+          console.log(nsp)
+          return axios.post('http://localhost:3001/api/product-supplies', {
+            quantity: parseInt(nsp.quantity),
+            purchase_price : parseInt(nsp.purchase_price),
+            productId: parseInt(nsp.productId),
+            supplyId: parseInt(nsp.supplyId),
+          });
+        });
+        const supplyProducrsResponse = await Promise.all(supplyProducrsPromises);
+
+        const addedSupply = await response.json()
         // Update the state with the new supply including its
         const updatedSupply = {
           id: addedSupply.id,
@@ -126,6 +167,7 @@ const SuppliesContent = () => {
           description: addedSupply.description,
           paid_amount: addedSupply.paid_amount,
           remaining_amount: addedSupply.remaining_amount,
+          supplierId : addedSupply.supplierId
         }
         setSupplies((prevSupplies) => [...prevSupplies, updatedSupply])
         fetchSupplies()
@@ -201,6 +243,7 @@ const SuppliesContent = () => {
       description: supply.description,
       paid_amount: supply.paid_amount,
       remaining_amount: supply.remaining_amount,
+      supplierId : supply.supplierId
     })
     setShowUpdateModal(true)
   }
@@ -213,28 +256,64 @@ const SuppliesContent = () => {
   const filteredSupplies = supplies.filter((supply) => {
     const searchLower = searchQuery.toLowerCase()
     return (
-      (supply.date && supply.date.toLowerCase().includes(searchLower)) ||
-      (supply.amount && supply.amount.toLowerCase().includes(searchLower)) ||
+      (supply.date && supply.date.toString().includes(searchLower)) ||
+      (supply.amount && supply.amount.toString().toLowerCase().includes(searchLower)) ||
       (supply.description.toString() &&
         supply.description.toString().toLowerCase().includes(searchLower))
     )
   })
+
+  const handleShowDetails = async (supply) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/supplies/${supply.id}/supplier`)
+      const data = await response.json()
+      setSelectedSupplier(data.name)
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/supplies/${supply.id}/supply`)
+      const data = await response.json()
+      setSelectedSupplyProducts(data)
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+
+    setShowDetailsModal(true) // Show the details modal
+    setSelectedSupply(supply)
+  }
+
+  const handleCloseDetails = () => {
+    setShowDetailsModal(false) // Close the details modal
+  }
+
   console.log('filteredSupplies', filteredSupplies)
   const actions = {
     onDelete: handleDeleteClick,
     onUpdate: handleUpdateSupply,
+    onShowDetails: handleShowDetails,
   }
-  const handleAddSubmit = (e) => {
+  const handleAddSubmit = (productInputs) => {
     console.log('form data', formData)
-    e.preventDefault()
+    console.log(productInputs)
     const newSupply = {
       date: formData.date,
       amount: formData.amount,
       description: formData.description,
       paid_amount: formData.paid_amount,
       remaining_amount: formData.remaining_amount,
+      supplierId: formData.supplierId,
     }
-    handleAddSupply(newSupply)
+    const newSupplyProducts = productInputs.map((nps) => (
+      {
+        supplyId : lastSupplyId + 1,
+        productId : nps.productId,
+        purchase_price : nps.purchasePrice,
+        quantity : nps.quantity
+      }
+    ))
+    handleAddSupply(newSupply,newSupplyProducts)
   }
   const InputsConfig = [
     {
@@ -294,6 +373,19 @@ const SuppliesContent = () => {
         })),
       required: true,
     },
+    {
+      label: 'Supplier',
+      type: 'select',
+      value: formData.supplierId,
+      onChange: (e) =>
+        setFormData((prevData) => ({
+          ...prevData,
+          supplierId: e.target.value,
+        })),
+      options: suppliers,
+      required: true,
+    },
+    
   ]
   const headerConfig = [
     {
@@ -320,7 +412,51 @@ const SuppliesContent = () => {
       title: 'Manage',
       class: 'pb-3 pr-12 text-end min-w-[20%]',
     },
+    {
+      title: 'Details',
+      class: 'pb-3 pr-12 text-end min-w-[20%]',
+    },
   ]
+
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0'); // getMonth() is zero-based
+    const year = d.getFullYear();
+  
+    return `${day}-${month}-${year}`;
+  };
+
+  const modalData =
+  selectedSupply && selectedSupply.currentSupply
+    ? [
+        {
+          label: 'date',
+          value: `${formatDate(selectedSupply.currentSupply.date)}`,
+        },
+        {
+          label: 'Amount',
+          value: `${selectedSupply.currentSupply.amount} DA`,
+        },
+        { 
+          label: 'Remaining amount', 
+          value: `${selectedSupply.currentSupply.remaining_amount } DA`,
+        },
+        {
+          label: 'Paid amount',
+          value: `${selectedSupply.currentSupply.paid_amount} DA`,
+        },
+        {
+          label: 'Description',
+          value: selectedSupply.currentSupply.description,
+        },
+        {
+          label: 'Supplier',
+          value: selectedSupplier,
+        },
+      ]
+    : []
+    
   return (
     <main className="container mx-auto p-4 mt-[52px] flex flex-wrap mb-5">
       <div className="w-full max-w-full px-3 mb-6 mx-auto">
@@ -329,7 +465,7 @@ const SuppliesContent = () => {
             <div className="px-9 pt-5 flex justify-between items-stretch flex-wrap min-h-[70px] pb-0 bg-transparent">
               <h3 className="flex flex-col items-start justify-center m-2 ml-0 font-medium text-xl/tight text-dark">
                 <span className="mr-3 font-semibold text-dark">
-                  Tous Les Fournisseur
+                  Tous Les Achats
                 </span>
               </h3>
               <div className="relative flex items-center my-2 border rounded-lg h-[40px] ml-auto min-w-[50%]">
@@ -384,7 +520,7 @@ const SuppliesContent = () => {
         </div>
       </div>
       {showModal && (
-        <AddModal
+        <AddModalWithProducts
           onSubmit={handleAddSubmit}
           onCancel={() => setShowModal(false)}
           InputsConfig={InputsConfig}
@@ -412,6 +548,15 @@ const SuppliesContent = () => {
           InputsConfig={InputsConfig}
           onSubmit={handleSubmit}
           onCancel={handleCancelUpdate}
+        />
+      )}
+        {showDetailsModal && selectedSupply && (
+        <DetailsModal
+          isOpen={showDetailsModal}
+          onClose={handleCloseDetails}
+          data={modalData}
+          formatDate={(dateString) => new Date(dateString).toLocaleDateString()}
+          tableData={selectedSupplyProducts}
         />
       )}
     </main>

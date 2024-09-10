@@ -60,15 +60,15 @@ const DetailsModal = ({ isOpen, onClose, title, data, formatDate, tableData }) =
                     key={index}
                     className={index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'}
                   >
-                    <td className="py-2 px-4 border-b border-gray-200">
-                      {item.product}
-                    </td>
-                    <td className="py-2 px-4 border-b border-gray-200">
-                      {item.quantity}
-                    </td>
-                    <td className="py-2 px-4 border-b border-gray-200">
+                   <td className="py-2 px-4 border-b border-gray-200 text-center text-sm">
+                    {item.name}
+                   </td>
+                   <td className="py-2 px-4 border-b border-gray-200 text-center text-sm">
+                     {item.quantity}
+                   </td>
+                  <td className="py-2 px-4 border-b border-gray-200 text-center text-sm">
                       {item.purchase_price}
-                    </td>
+                   </td>
                   </tr>
                 ))}
               </tbody>

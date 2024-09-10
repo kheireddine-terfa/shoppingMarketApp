@@ -4,7 +4,7 @@ import ProductTitle from '../ProductContent/relatedComponents/ProductTitle'
 
 const TableRow = ({ actions, dataItem, tableTitle }) => {
   return (
-    <tr className="border-b border-dashed last:border-b-0">
+    <tr className="border-b border-dashed last:border-b-0 hover:bg-sky-100">
       {dataItem.imageSrc || dataItem.title ? (
         <td className="p-3 pl-0">
           <div className="flex items-center">
@@ -27,13 +27,13 @@ const TableRow = ({ actions, dataItem, tableTitle }) => {
       )}
 
       {dataItem.price ? (
-        <td className="p-3 pl-0 text-start">
+        <td className="p-3 pl-0 text-start ">
           <span className="font-semibold text-light-inverse text-md/normal">
             {dataItem.price}
           </span>
         </td>
       ) : dataItem.address ? (
-        <td className="p-3 pl-0 text-start">
+        <td className="p-3 pl-0 text-start ">
           <span className="font-semibold text-light-inverse text-md/normal">
             {dataItem.address}
           </span>

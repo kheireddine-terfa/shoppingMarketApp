@@ -2,13 +2,16 @@ const { ProductSupply } = require('../models');
 
 const createProductSupply = async (req, res) => {
   try {
-    const { quantity } = req.body;
-    const productSupply = await ProductSupply.create({ quantity });
+    console.log('Request Body:', req.body);
+    const { quantity,purchase_price , productId, supplyId} = req.body;
+    const productSupply = await ProductSupply.create({ quantity, purchase_price, productId, supplyId });
     res.status(201).json(productSupply);
   } catch (error) {
+    console.error('Error creating product supply:', error);
     res.status(500).json({ error: 'Failed to create product supply' });
   }
 };
+
 
 const getProductSupplies = async (req, res) => {
   try {

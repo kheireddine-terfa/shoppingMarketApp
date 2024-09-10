@@ -267,5 +267,5 @@ module.exports = {
   getSumRemainingAmount,
   getTotalIncomeByDate,
   getTopUnbalancedProductsByDate,
-  getTopProfitableUnbalancedProductsByDate
+  getTopProfitableUnbalancedProductsByDate,
 };

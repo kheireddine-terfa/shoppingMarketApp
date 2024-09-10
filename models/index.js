@@ -78,4 +78,5 @@ module.exports = {
   ExpirationDate,
   Category,
   ProductSale,
+  ProductSupply,
 }
