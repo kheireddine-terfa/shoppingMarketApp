@@ -12,7 +12,7 @@ const OSalesContent = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [selectedSale, setSelectedSale] = useState(null)
-  const [products, setProducts] = useState(null)
+  const [products, setProducts] = useState([])
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
