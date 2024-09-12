@@ -22,7 +22,7 @@ import SuppliersPage from './pages/SuppliersPage'
 import StatisticsPage from './pages/StatisticsPage'
 import CategoriesPage from './pages/CategoriesPage'
 import OSalesPage from './pages/OSalesPage'
-
+import ExpensesPage from './pages/ExpensesPage'
 const App = () => {
   return (
     <div className=" app-container bg-zinc-100">
@@ -37,6 +37,7 @@ const App = () => {
           <Route path="/suppliers" element={<SuppliersPage />}></Route>
           <Route path="/statistics" element={<StatisticsPage />}></Route>
           <Route path="/categories" element={<CategoriesPage />}></Route>
+          <Route path="/expenses" element={<ExpensesPage />}></Route>
         </Routes>
       </BrowserRouter>
     </div>

@@ -12,7 +12,7 @@ const HomeSideBar = () => {
           <SideBarItem text="Fournisseurs" url="/suppliers" />
           <SideBarItem text="Statistiques" url="/statistics" />
           <SideBarItem text="Categories" url="/categories" />
-          <SideBarItem text="Dépenses" />
+          <SideBarItem text="Dépenses" url="/expenses" />
           {/* <SideBarItem text="Ventes" /> */}
         </ul>
       </nav>

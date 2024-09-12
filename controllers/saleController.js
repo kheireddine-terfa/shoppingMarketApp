@@ -1,4 +1,4 @@
-const { Sale, ProductSale } = require('../models')
+const { Sale, ProductSale, Product } = require('../models')
 const { Op } = require('sequelize')
 const { sequelize } = require('../models') // Use require instead of import
 
@@ -270,7 +270,29 @@ const updateSale = async (req, res) => {
 const deleteSale = async (req, res) => {
   try {
     const { id } = req.params
+
+    // Find all product-sales for the saleId
+    const productSales = await ProductSale.findAll({ where: { saleId: id } })
+
+    if (productSales.length === 0) {
+      return res.status(404).json({ error: 'No products found for this sale' })
+    }
+
+    // Loop through each product-sale and update the corresponding product's quantity
+    for (const productSale of productSales) {
+      const product = await Product.findByPk(productSale.productId)
+
+      if (product) {
+        // Increase the product quantity by the quantity from the sale
+        product.quantity += productSale.quantity
+        await product.save()
+      }
+    }
+
+    // Delete the product-sales associated with the sale
     await ProductSale.destroy({ where: { saleId: id } })
+
+    // Find and delete the sale itself
     const sale = await Sale.findByPk(id)
     if (sale) {
       await sale.destroy()
@@ -282,6 +304,7 @@ const deleteSale = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete sale' })
   }
 }
+
 const deleteAllSales = async (req, res) => {
   try {
     await Sale.destroy({ where: {}, truncate: true })
