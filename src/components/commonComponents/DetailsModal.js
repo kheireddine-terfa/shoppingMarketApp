@@ -10,15 +10,17 @@ const DetailsModal = ({
 }) => {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
+  let totalPages, currentTableData
+  if (tableData) {
+    // Calculate total pages
+    totalPages = Math.ceil(tableData.length / itemsPerPage)
 
-  // Calculate total pages
-  const totalPages = Math.ceil(tableData.length / itemsPerPage)
-
-  // Get current page data
-  const currentTableData = tableData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  )
+    // Get current page data
+    currentTableData = tableData.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage,
+    )
+  }
 
   // Handle page change
   const handlePageChange = (newPage) => {
