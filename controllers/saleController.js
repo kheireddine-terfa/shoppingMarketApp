@@ -270,7 +270,7 @@ const updateSale = async (req, res) => {
 const deleteSale = async (req, res) => {
   try {
     const { id } = req.params
-
+    console.log('id-----------------------:', id)
     // Find all product-sales for the saleId
     const productSales = await ProductSale.findAll({ where: { saleId: id } })
 

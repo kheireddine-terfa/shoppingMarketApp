@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import Table from '../commonComponents/Table'
-// import AddProductModal from './relatedComponents/AddProductModal'
+import { headerConfig, InputsConfig } from '../../config/categoryConfig'
+import {
+  initialFormData,
+  filteredCategories,
+} from '../../utilities/categoryUtils'
+import {
+  fetchCategories,
+  handleAddSubmit,
+  handleSubmit,
+  handleDeleteAll,
+  handleConfirmDelete,
+} from '../../api/categoryApi'
 import AddModal from '../commonComponents/AddModal'
 import ConfirmModal from '../commonComponents/ConfirmModal'
 import UpdateModal from '../commonComponents/UpdateModal'
@@ -16,172 +27,19 @@ const CategoriesContent = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isUpdate, setIsUpdate] = useState(false) // Flag to determine if the form is for update or add
-  const initialFormData = {
-    name: '',
-    image: null,
-  }
+
   const [formData, setFormData] = useState(initialFormData)
   // Fetch categories from the backend
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/categories')
-      const data = await response.json()
-      setCategories(
-        data.map((category) => {
-          return {
-            id: category.id,
-            imageSrc:
-              category.image !== null
-                ? `/categoriesImages/${category.image}`
-                : '/categoriesImages/default_image.png',
-            imageAlt: category.name,
-            titleHref: `/categories/${category.id}`,
-            title: category.name,
-            currentCategory: category,
-          }
-        }),
-      )
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
   useEffect(() => {
-    fetchCategories()
+    fetchCategories(setCategories)
   }, [])
   const handleDeleteClick = (category) => {
     setSelectedCategory(category) // Ensure the correct category object is set
     setShowDeleteModal(true)
   }
-
-  // Handle delete
-  const handleConfirmDelete = async () => {
-    if (!selectedCategory) return // Ensure selectedCategory is set
-    try {
-      const response = await fetch(
-        `http://localhost:3001/api/categories/${selectedCategory}`,
-        {
-          // Use template literal with backticks
-          method: 'DELETE',
-        },
-      )
-      if (response.ok) {
-        // Remove the deleted category from the state
-        setCategories(categories.filter((p) => p.id !== selectedCategory))
-        setSelectedCategory(null) // Reset selectedCategory after deletion
-        setShowDeleteModal(false) // Close the delete modal
-      } else {
-        console.error('Failed to delete category')
-      }
-    } catch (error) {
-      console.error('Error deleting category:', error)
-    }
-  }
-
-  // Handle delete all categories
-  const handleDeleteAll = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/categories', {
-        method: 'DELETE',
-      })
-
-      if (response.ok) {
-        fetchCategories() // Re-fetch categorys after all are deleted
-        setShowConfirmModal(false) // Close the modal
-      } else {
-        console.error('Failed to delete all categories')
-      }
-    } catch (error) {
-      console.error('Error deleting all categories:', error)
-    }
-  }
-  // Handle add category
-  const handleAddCategory = async (newCategory) => {
-    try {
-      const formData = new FormData()
-      formData.append('name', newCategory.name)
-      if (newCategory.image) {
-        formData.append('image', newCategory.image) // Append the image file
-      }
-      const response = await fetch('http://localhost:3001/api/categories', {
-        method: 'POST',
-        body: formData, // Send the FormData
-      })
-      if (response.ok) {
-        const addedCategory = await response.json()
-
-        // Update the state with the new category including its image
-        const updatedCategory = {
-          id: addedCategory.id,
-          imageSrc: addedCategory.image
-            ? `/categoriesImages/${addedCategory.image}`
-            : '/categoriesImages/default_image.png',
-          imageAlt: addedCategory.name,
-          titleHref: `/categories/${addedCategory.id}`,
-          title: addedCategory.name,
-        }
-        setCategories((prevCategories) => [...prevCategories, updatedCategory])
-        fetchCategories()
-        setShowModal(false)
-        // Reset form data after adding a category
-        setFormData(initialFormData)
-      } else {
-        console.error('Failed to add the category')
-      }
-    } catch (error) {
-      console.error('Error adding category:', error)
-    }
-  }
-  const handleUpdate = async (updatedCategory) => {
-    try {
-      // Create a FormData object to handle the file upload and other data
-      const formData = new FormData()
-      formData.append('name', updatedCategory.name) // Append the category name
-      if (updatedCategory.image) {
-        formData.append('image', updatedCategory.image) // Append the category image if it exists
-      }
-
-      // Send the updated data to the backend
-      const response = await fetch(
-        `http://localhost:3001/api/categories/${updatedCategory.id}`,
-        {
-          method: 'PUT',
-          body: formData,
-        },
-      )
-
-      if (!response.ok) {
-        throw new Error('Failed to update the category')
-      } else {
-        fetchCategories()
-        setShowUpdateModal(false)
-        setFormData(initialFormData)
-        setIsUpdate(false) // Set update flag to false
-      }
-
-      const result = await response.json()
-      console.log('Category updated successfully:', result)
-
-      // Add any further logic if needed, such as updating the UI or notifying the user
-    } catch (error) {
-      console.error('Error updating category:', error)
-      // Handle the error, e.g., show an error message to the user
-    }
-  }
-  const handleSubmit = (event) => {
-    event.preventDefault()
-
-    const updatedCategory = {
-      id: selectedCategory.id, // The ID of the category being updated
-      name: formData.name,
-      image: formData.image,
-    }
-
-    handleUpdate(updatedCategory)
-  }
   const handleUpdateCategory = (category) => {
     setSelectedCategory(category)
-    console.log('category :', category)
     setFormData({
       name: category.name,
       image: null,
@@ -196,58 +54,11 @@ const CategoriesContent = () => {
     setIsUpdate(false) // Reset the update flag
   }
 
-  // Filter categories searching :
-  const filteredCategories = categories.filter((category) => {
-    const searchLower = searchQuery.toLowerCase()
-    return category.title && category.title.toLowerCase().includes(searchLower)
-  })
   const actions = {
     onDelete: handleDeleteClick,
     onUpdate: handleUpdateCategory,
   }
-  const handleAddSubmit = (e) => {
-    e.preventDefault()
-    const newCategory = {
-      name: formData.name,
-      image: formData.image,
-    }
-    handleAddCategory(newCategory)
-  }
-  const handleImageChange = (e) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      image: e.target.files[0],
-    }))
-  }
-  const InputsConfig = [
-    {
-      label: 'Category Name',
-      value: formData.name,
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          name: e.target.value,
-        })),
-      required: true,
-    },
-    {
-      label: 'Category Image',
-      type: 'file',
-      onChange: handleImageChange,
-      accept: 'image/*',
-      required: !isUpdate, // Only required if it's not an update,
-    },
-  ]
-  const headerConfig = [
-    {
-      title: 'Title',
-      class: 'pb-3 text-start min-w-[50%]',
-    },
-    {
-      title: 'Manage',
-      class: 'pb-3 pr-12 text-end min-w-[50%]',
-    },
-  ]
+
   return (
     <main className="container mx-auto p-4 mt-[52px] flex flex-wrap mb-5">
       <div className="w-full max-w-full px-3 mb-6 mx-auto">
@@ -302,7 +113,7 @@ const CategoriesContent = () => {
               </div>
             </div>
             <Table
-              data={filteredCategories}
+              data={filteredCategories(categories, searchQuery)}
               actions={actions}
               headerConfig={headerConfig}
               tableTitle={'categories'}
@@ -312,9 +123,17 @@ const CategoriesContent = () => {
       </div>
       {showModal && (
         <AddModal
-          onSubmit={handleAddSubmit}
+          onSubmit={(e) =>
+            handleAddSubmit(
+              e,
+              formData,
+              setCategories,
+              setShowModal,
+              setFormData,
+            )
+          }
           onCancel={() => setShowModal(false)}
-          InputsConfig={InputsConfig}
+          InputsConfig={InputsConfig(formData, setFormData, isUpdate)}
           title={'Category'}
         />
       )}
@@ -322,26 +141,40 @@ const CategoriesContent = () => {
         <ConfirmModal
           title="Delete Category"
           message={`Are you sure you want to delete this Category?`}
-          onConfirm={handleConfirmDelete}
+          onConfirm={() =>
+            handleConfirmDelete(
+              selectedCategory,
+              setCategories,
+              categories,
+              setSelectedCategory,
+              setShowDeleteModal,
+            )
+          }
           onCancel={() => setShowDeleteModal(false)}
         />
       )}
       {showConfirmModal && (
         <ConfirmModal
           message="Are you sure you want to delete all categories?"
-          onConfirm={handleDeleteAll}
+          onConfirm={() => handleDeleteAll(setCategories, setShowConfirmModal)}
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
       {showUpdateModal && selectedCategory && (
-        // <UpdateModal
-        //   onSubmit={handleUpdateSubmit}
-        //   onCancel={handleCancelUpdate}
-        // />
         <UpdateModal
           title="Category"
-          InputsConfig={InputsConfig}
-          onSubmit={handleSubmit}
+          InputsConfig={InputsConfig(formData, setFormData, isUpdate)}
+          onSubmit={(e) =>
+            handleSubmit(
+              e,
+              formData,
+              setCategories,
+              setShowUpdateModal,
+              setFormData,
+              selectedCategory,
+              setIsUpdate,
+            )
+          }
           onCancel={handleCancelUpdate}
         />
       )}
