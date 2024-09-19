@@ -3,9 +3,19 @@ import Table from '../commonComponents/Table'
 import ConfirmModal from '../commonComponents/ConfirmModal'
 import UpdateModal from '../commonComponents/UpdateModal'
 import DetailsModal from '../commonComponents/DetailsModal'
-
-// import './style.css'
-// check the controller :
+import {
+  filteredSales,
+  initialFormData,
+  modalData,
+} from '../../utilities/saleUtils'
+import { InputsConfig, headerConfig } from '../../config/saleConfig'
+import {
+  fetchSales,
+  fetchProducts,
+  handleSubmit,
+  handleDeleteAll,
+  handleConfirmDelete,
+} from '../../api/saleApi'
 const OSalesContent = () => {
   //----------- States:
   const [sales, setSales] = useState([])
@@ -17,68 +27,14 @@ const OSalesContent = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [isUpdate, setIsUpdate] = useState(false) // Flag to determine if the form is for update or add
-  const initialFormData = {
-    date: '',
-    amount: '',
-    description: '',
-    paid_amount: '',
-    remaining_amount: '',
-  }
   const [formData, setFormData] = useState(initialFormData)
-  // Fetch sales from the backend
 
-  const fetchSales = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/product-sales')
-      const data = await response.json()
-      setSales(
-        data.map((sale) => {
-          return {
-            id: sale.id,
-            date: sale.date,
-            description: sale.description,
-            amount: sale.amount,
-            paid_amount: sale.paid_amount,
-            remaining_amount: sale.remaining_amount,
-            currentSale: sale,
-          }
-        }),
-      )
-    } catch (error) {
-      console.error('Error fetching sales:', error)
-    }
-  }
   useEffect(() => {
-    fetchSales()
+    fetchSales(setSales)
   }, [])
   useEffect(() => {
-    // Fetch the products of the specific sale
-    const fetchProducts = async () => {
-      if (!selectedSale) return
-      try {
-        const response = await fetch(
-          `http://localhost:3001/api/product-sales/${selectedSale.id}`,
-        )
-        const data = await response.json()
-        setProducts(
-          data.map((item) => {
-            return {
-              id: item.Product.id,
-              productName: item.Product.name,
-              productPrice: item.Product.price,
-              saleQuantity: item.quantity,
-              isBalanced: item.Product.balanced_product,
-            }
-          }),
-        ) // Assuming the API returns an array of products with their sold quantity
-      } catch (error) {
-        console.error('Error fetching products:', error)
-      }
-    }
-
-    fetchProducts()
+    fetchProducts(selectedSale, setProducts)
   }, [selectedSale])
-  console.log('products :', products)
   const handleShowDetails = (sale) => {
     setSelectedSale(sale)
     setShowDetailsModal(true) // Show the details modal
@@ -92,101 +48,6 @@ const OSalesContent = () => {
     setShowDeleteModal(true)
   }
 
-  // Handle delete
-  const handleConfirmDelete = async () => {
-    if (!selectedSale) return // Ensure selectedSale is set
-    try {
-      const response = await fetch(
-        `http://localhost:3001/api/sales/${selectedSale}`,
-        {
-          // Use template literal with backticks
-          method: 'DELETE',
-        },
-      )
-      if (response.ok) {
-        // Remove the deleted sale from the state
-        setSales(sales.filter((p) => p.id !== selectedSale))
-        setSelectedSale(null) // Reset selectedSale after deletion
-        setShowDeleteModal(false) // Close the delete modal
-      } else {
-        console.error('Failed to delete sale')
-      }
-    } catch (error) {
-      console.error('Error deleting sale:', error)
-    }
-  }
-
-  // Handle delete all sales
-  const handleDeleteAll = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/sales', {
-        method: 'DELETE',
-      })
-
-      if (response.ok) {
-        fetchSales() // Re-fetch sales after all are deleted
-        setShowConfirmModal(false) // Close the modal
-      } else {
-        console.error('Failed to delete all sales')
-      }
-    } catch (error) {
-      console.error('Error deleting all sales:', error)
-    }
-  }
-  const handleUpdate = async (updatedSale) => {
-    try {
-      // Create a FormData object to handle the file upload and other data
-      const formData = {
-        date: updatedSale.sale,
-        amount: updatedSale.amount,
-        description: updatedSale.description,
-        paid_amount: updatedSale.paid_amount,
-        remaining_amount: updatedSale.remaining_amount,
-      }
-      // Send the updated data to the backend
-      const response = await fetch(
-        `http://localhost:3001/api/sales/${updatedSale.id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        },
-      )
-
-      if (!response.ok) {
-        throw new Error('Failed to update the sale')
-      } else {
-        fetchSales()
-        setShowUpdateModal(false)
-        setFormData(initialFormData)
-        setIsUpdate(false) // Set update flag to false
-      }
-
-      const result = await response.json()
-      console.log('sale updated successfully:', result)
-
-      // Add any further logic if needed, such as updating the UI or notifying the user
-    } catch (error) {
-      console.error('Error updating sale:', error)
-      // Handle the error, e.g., show an error message to the user
-    }
-  }
-  const handleSubmit = (event) => {
-    event.preventDefault()
-
-    const updatedSale = {
-      id: selectedSale.id, // The ID of the sale being updated
-      date: formData.date,
-      amount: formData.amount,
-      description: formData.description,
-      paid_amount: formData.paid_amount,
-      remaining_amount: formData.remaining_amount,
-    }
-
-    handleUpdate(updatedSale)
-  }
   const handleUpdateSale = (sale) => {
     setSelectedSale(sale)
     setFormData({
@@ -206,139 +67,11 @@ const OSalesContent = () => {
     setIsUpdate(false) // Reset the update flag
   }
 
-  // Filter sales searching :
-  const filteredSales = sales.filter((sale) => {
-    const searchLower = searchQuery.toLowerCase()
-    return (
-      (sale.date && sale.date.toLowerCase().includes(searchLower)) ||
-      (sale.amount &&
-        sale.amount.toString().toLowerCase().includes(searchLower)) ||
-      (sale.description &&
-        sale.description.toString().toLowerCase().includes(searchLower)) ||
-      (sale.paid_amount &&
-        sale.paid_amount.toString().toLowerCase().includes(searchLower)) ||
-      (sale.remaining_amount &&
-        sale.remaining_amount.toString().toLowerCase().includes(searchLower))
-    )
-  })
   const actions = {
     onDelete: handleDeleteClick,
     onUpdate: handleUpdateSale,
     onShowDetails: handleShowDetails,
   }
-
-  const InputsConfig = [
-    {
-      label: 'Date',
-      value: formData.date,
-      type: 'date',
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          date: e.target.value,
-        })),
-      required: !isUpdate, // Only required if it's not an update,
-    },
-    {
-      label: 'Amount',
-      value: formData.amount,
-      type: 'number',
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          amount: e.target.value,
-        })),
-      required: true,
-    },
-    {
-      label: 'Description',
-      value: formData.description,
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          description: e.target.value,
-        })),
-      required: true,
-    },
-    {
-      label: 'Paid Amount',
-      value: formData.paid_amount,
-      type: 'number',
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          paid_amount: e.target.value,
-        })),
-      required: true,
-    },
-    {
-      label: 'Remaining Amount',
-      value: formData.remaining_amount,
-      type: 'number',
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          remaining_amount: e.target.value,
-        })),
-      required: true,
-    },
-  ]
-  const headerConfig = [
-    {
-      title: 'Date',
-      class: 'pb-3 text-start min-w-[20%]',
-    },
-    {
-      title: 'Description',
-      class: 'pb-3 text-start min-w-[20%]',
-    },
-    {
-      title: 'Amount',
-      class: 'pb-3 text-start min-w-[20%]',
-    },
-    {
-      title: 'Paid Amount',
-      class: 'pb-3 text-start min-w-[20%]',
-    },
-    {
-      title: 'Remaining Amount',
-      class: 'pb-3 text-start min-w-[20%]',
-    },
-    {
-      title: 'Manage',
-      class: 'pb-3 text-start min-w-[15%]',
-    },
-    {
-      title: 'details',
-      class: 'pb-3 pr-12 text-end min-w-[15%]',
-    },
-  ]
-  const modalData =
-    selectedSale && selectedSale.currentSale
-      ? [
-          {
-            label: 'Date',
-            value: `${new Date(
-              selectedSale.currentSale.date,
-            ).toLocaleDateString()}`,
-          },
-          {
-            label: 'Amount',
-            value: `${selectedSale.currentSale.amount} DA`,
-          },
-          { label: 'Description', value: selectedSale.currentSale.description },
-          {
-            label: 'Paid Amount',
-            value: selectedSale.currentSale.paid_amount,
-          },
-
-          {
-            label: 'Remaining Amount',
-            value: selectedSale.remaining_amount,
-          },
-        ]
-      : []
-  console.log(formData)
   return (
     <main className="container mx-auto p-4 mt-[52px] flex flex-wrap mb-5">
       <div className="w-full max-w-full px-3 mb-6 mx-auto">
@@ -386,7 +119,7 @@ const OSalesContent = () => {
               </div>
             </div>
             <Table
-              data={filteredSales}
+              data={filteredSales(sales, searchQuery)}
               actions={actions}
               headerConfig={headerConfig}
               tableTitle={'sales'}
@@ -398,22 +131,40 @@ const OSalesContent = () => {
         <ConfirmModal
           title="Delete Sale"
           message={`Are you sure you want to delete this sale?`}
-          onConfirm={handleConfirmDelete}
+          onConfirm={() =>
+            handleConfirmDelete(
+              selectedSale,
+              setSales,
+              sales,
+              setSelectedSale,
+              setShowDeleteModal,
+            )
+          }
           onCancel={() => setShowDeleteModal(false)}
         />
       )}
       {showConfirmModal && (
         <ConfirmModal
           message="Are you sure you want to delete all sales?"
-          onConfirm={handleDeleteAll}
+          onConfirm={() => handleDeleteAll(setSales, setShowConfirmModal)}
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
       {showUpdateModal && selectedSale && (
         <UpdateModal
           title="Sale"
-          InputsConfig={InputsConfig}
-          onSubmit={handleSubmit}
+          InputsConfig={InputsConfig(formData, setFormData, isUpdate)}
+          onSubmit={(e) =>
+            handleSubmit(
+              e,
+              formData,
+              setSales,
+              setShowUpdateModal,
+              setFormData,
+              selectedSale,
+              setIsUpdate,
+            )
+          }
           onCancel={handleCancelUpdate}
         />
       )}
@@ -426,7 +177,7 @@ const OSalesContent = () => {
               ? `Sale : ${selectedSale.currentSale.id.toString().toUpperCase()}`
               : ''
           }
-          data={modalData}
+          data={modalData(selectedSale)}
           formatDate={(dateString) => new Date(dateString).toLocaleDateString()}
           tableData={products}
         />
