@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import Table from '../commonComponents/Table'
-// import AddProductModal from './relatedComponents/AddProductModal'
+import {
+  filteredSuppliers,
+  initialFormData,
+} from '../../utilities/supplierUtils'
+import { InputsConfig, headerConfig } from '../../config/supplierConfig'
+import {
+  fetchSuppliers,
+  handleAddSubmit,
+  handleDeleteAll,
+  handleConfirmDelete,
+  handleSubmit,
+} from '../../api/supplierApi'
 import AddModal from '../commonComponents/AddModal'
 import ConfirmModal from '../commonComponents/ConfirmModal'
 import UpdateModal from '../commonComponents/UpdateModal'
@@ -14,170 +25,14 @@ const SuppliersContent = () => {
   const [selectedSupplier, setSelectedSupplier] = useState(null)
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const initialFormData = {
-    name: '',
-    address: '',
-    phone_number: '',
-  }
   const [formData, setFormData] = useState(initialFormData)
   // Fetch suppliers from the backend
-
-  const fetchSuppliers = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/suppliers')
-      const data = await response.json()
-      setSuppliers(
-        data.map((supplier) => {
-          return {
-            id: supplier.id,
-            address: supplier.address,
-            phone_number: supplier.phone_number,
-            titleHref: `/suppliers/${supplier.id}`,
-            title: supplier.name,
-            currentSupplier: supplier,
-          }
-        }),
-      )
-    } catch (error) {
-      console.error('Error fetching suppliers:', error)
-    }
-  }
   useEffect(() => {
-    fetchSuppliers()
+    fetchSuppliers(setSuppliers)
   }, [])
   const handleDeleteClick = (supplier) => {
     setSelectedSupplier(supplier) // Ensure the correct supplier object is set
     setShowDeleteModal(true)
-  }
-
-  // Handle delete
-  const handleConfirmDelete = async () => {
-    if (!selectedSupplier) return // Ensure selectedSupplier is set
-    try {
-      const response = await fetch(
-        `http://localhost:3001/api/suppliers/${selectedSupplier}`,
-        {
-          // Use template literal with backticks
-          method: 'DELETE',
-        },
-      )
-      if (response.ok) {
-        // Remove the deleted supplier from the state
-        setSuppliers(suppliers.filter((s) => s.id !== selectedSupplier))
-        setSelectedSupplier(null) // Reset selectedSupplier after deletion
-        setShowDeleteModal(false) // Close the delete modal
-      } else {
-        console.error('Failed to delete supplier')
-      }
-    } catch (error) {
-      console.error('Error deleting supplier:', error)
-    }
-  }
-
-  // Handle delete all suppliers
-  const handleDeleteAll = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/suppliers', {
-        method: 'DELETE',
-      })
-
-      if (response.ok) {
-        fetchSuppliers() // Re-fetch suppliers after all are deleted
-        setShowConfirmModal(false) // Close the modal
-      } else {
-        console.error('Failed to delete all suppliers')
-      }
-    } catch (error) {
-      console.error('Error deleting all suppliers:', error)
-    }
-  }
-  // Handle add supplier
-  const handleAddSupplier = async (newSupplier) => {
-    try {
-      const formData = {
-        name: newSupplier.name,
-        address: newSupplier.address,
-        phone_number: newSupplier.phone_number,
-      }
-
-      const response = await fetch('http://localhost:3001/api/suppliers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData), // Send the FormData
-      })
-      if (response.ok) {
-        const addedSupplier = await response.json()
-
-        // Update the state with the new supplier including its
-        const updatedSupplier = {
-          id: addedSupplier.id,
-          titleHref: `/suppliers/${addedSupplier.id}`,
-          title: addedSupplier.name,
-          address: addedSupplier.address,
-          phone_number: addedSupplier.phone_number,
-        }
-        setSuppliers((prevSuppliers) => [...prevSuppliers, updatedSupplier])
-        fetchSuppliers()
-        setShowModal(false)
-        // Reset form data after adding a supplier
-        setFormData(initialFormData)
-      } else {
-        console.error('Failed to add the supplier')
-      }
-    } catch (error) {
-      console.error('Error adding supplier:', error)
-    }
-  }
-  const handleUpdate = async (updatedSupplier) => {
-    try {
-      // Create a FormData object to handle the file upload and other data
-      const formData = {
-        name: updatedSupplier.name,
-        address: updatedSupplier.address,
-        phone_number: updatedSupplier.phone_number,
-      }
-      // Send the updated data to the backend
-      const response = await fetch(
-        `http://localhost:3001/api/suppliers/${updatedSupplier.id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        },
-      )
-
-      if (!response.ok) {
-        throw new Error('Failed to update the supplier')
-      } else {
-        fetchSuppliers()
-        setShowUpdateModal(false)
-        setFormData(initialFormData)
-      }
-
-      const result = await response.json()
-      console.log('supplier updated successfully:', result)
-
-      // Add any further logic if needed, such as updating the UI or notifying the user
-    } catch (error) {
-      console.error('Error updating supplier:', error)
-      // Handle the error, e.g., show an error message to the user
-    }
-  }
-  const handleSubmit = (event) => {
-    event.preventDefault()
-
-    const updatedSupplier = {
-      id: selectedSupplier.id, // The ID of the supplier being updated
-      name: formData.name,
-      address: formData.address,
-      phone_number: formData.phone_number,
-    }
-
-    handleUpdate(updatedSupplier)
   }
   const handleUpdateSupplier = (supplier) => {
     setSelectedSupplier(supplier)
@@ -194,81 +49,10 @@ const SuppliersContent = () => {
     setShowUpdateModal(false)
     setSelectedSupplier(null)
   }
-  // Filter suppliers searching :
-  const filteredSuppliers = suppliers.filter((supplier) => {
-    const searchLower = searchQuery.toLowerCase()
-    return (
-      (supplier.title && supplier.title.toLowerCase().includes(searchLower)) ||
-      (supplier.address &&
-        supplier.address.toLowerCase().includes(searchLower)) ||
-      (supplier.phone_number.toString() &&
-        supplier.phone_number.toString().toLowerCase().includes(searchLower))
-    )
-  })
   const actions = {
     onDelete: handleDeleteClick,
     onUpdate: handleUpdateSupplier,
   }
-  const handleAddSubmit = (e) => {
-    console.log('form data', formData)
-    e.preventDefault()
-    const newSupplier = {
-      name: formData.name,
-      address: formData.address,
-      phone_number: formData.phone_number,
-    }
-    handleAddSupplier(newSupplier)
-  }
-  const InputsConfig = [
-    {
-      label: 'Supplier Name',
-      value: formData.name,
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          name: e.target.value,
-        })),
-      required: true,
-    },
-    {
-      label: 'Supplier Address',
-      value: formData.address,
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          address: e.target.value,
-        })),
-      required: true,
-    },
-    {
-      label: 'Supplier Phone Number',
-      value: formData.phone_number,
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          phone_number: e.target.value,
-        })),
-      required: true,
-    },
-  ]
-  const headerConfig = [
-    {
-      title: 'Supplier Name',
-      class: 'pb-3 text-start min-w-[25%]',
-    },
-    {
-      title: 'Address',
-      class: 'pb-3 text-start min-w-[25%]',
-    },
-    {
-      title: 'Phone Number',
-      class: 'pb-3 text-start min-w-[25%]',
-    },
-    {
-      title: 'Manage',
-      class: 'pb-3 pr-12 text-end min-w-[25%]',
-    },
-  ]
   return (
     <main className="container mx-auto p-4 mt-[52px] flex flex-wrap mb-5">
       <div className="w-full max-w-full px-3 mb-6 mx-auto">
@@ -323,7 +107,7 @@ const SuppliersContent = () => {
               </div>
             </div>
             <Table
-              data={filteredSuppliers}
+              data={filteredSuppliers(suppliers, searchQuery)}
               actions={actions}
               headerConfig={headerConfig}
               tableTitle={'suppliers'}
@@ -333,9 +117,17 @@ const SuppliersContent = () => {
       </div>
       {showModal && (
         <AddModal
-          onSubmit={handleAddSubmit}
+          onSubmit={(e) =>
+            handleAddSubmit(
+              e,
+              formData,
+              setSuppliers,
+              setShowModal,
+              setFormData,
+            )
+          }
           onCancel={() => setShowModal(false)}
-          InputsConfig={InputsConfig}
+          InputsConfig={InputsConfig(formData, setFormData)}
           title={'Supplier'}
         />
       )}
@@ -343,26 +135,39 @@ const SuppliersContent = () => {
         <ConfirmModal
           title="Delete Supplier"
           message={`Are you sure you want to delete this Supplier?`}
-          onConfirm={handleConfirmDelete}
+          onConfirm={() =>
+            handleConfirmDelete(
+              selectedSupplier,
+              setSuppliers,
+              suppliers,
+              setSelectedSupplier,
+              setShowDeleteModal,
+            )
+          }
           onCancel={() => setShowDeleteModal(false)}
         />
       )}
       {showConfirmModal && (
         <ConfirmModal
           message="Are you sure you want to delete all suppliers?"
-          onConfirm={handleDeleteAll}
+          onConfirm={() => handleDeleteAll(setSuppliers, setShowConfirmModal)}
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
       {showUpdateModal && selectedSupplier && (
-        // <UpdateModal
-        //   onSubmit={handleUpdateSubmit}
-        //   onCancel={handleCancelUpdate}
-        // />
         <UpdateModal
           title="Supplier"
-          InputsConfig={InputsConfig}
-          onSubmit={handleSubmit}
+          InputsConfig={InputsConfig(formData, setFormData)}
+          onSubmit={(e) =>
+            handleSubmit(
+              e,
+              formData,
+              setSuppliers,
+              setShowUpdateModal,
+              setFormData,
+              selectedSupplier,
+            )
+          }
           onCancel={handleCancelUpdate}
         />
       )}
