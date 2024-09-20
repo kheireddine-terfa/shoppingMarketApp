@@ -72,7 +72,6 @@ export const handleAddSubmit = (
   setFormData,
 ) => {
   e.preventDefault()
-  e.preventDefault()
   const newSupplier = {
     name: formData.name,
     address: formData.address,

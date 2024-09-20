@@ -3,8 +3,15 @@ import Table from '../commonComponents/Table'
 import ConfirmModal from '../commonComponents/ConfirmModal'
 import UpdateModal from '../commonComponents/UpdateModal'
 import AddModal from '../commonComponents/AddModal'
-
-// import './style.css'
+import { initialFormData, filteredExpenses } from '../../utilities/expenseUtils'
+import { headerConfig, InputsConfig } from '../../config/expenseConfig'
+import {
+  fetchExpenses,
+  handleAddSubmit,
+  handleSubmit,
+  handleDeleteAll,
+  handleConfirmDelete,
+} from '../../api/expenseApi'
 // check the controller :
 const Expensescontent = () => {
   //----------- States:
@@ -16,179 +23,17 @@ const Expensescontent = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isUpdate, setIsUpdate] = useState(false) // Flag to determine if the form is for update or add
-  const initialFormData = {
-    date: '',
-    amount: '',
-    description: '',
-  }
   const [formData, setFormData] = useState(initialFormData)
   // Fetch expenses from the backend
 
-  const fetchExpenses = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/expenses')
-      const data = await response.json()
-      setExpenses(
-        data.map((expense) => {
-          return {
-            id: expense.id,
-            date: expense.date,
-            description: expense.description,
-            amount: expense.amount,
-            currentExpense: expense,
-          }
-        }),
-      )
-    } catch (error) {
-      console.error('Error fetching expenses:', error)
-    }
-  }
   useEffect(() => {
-    fetchExpenses()
+    fetchExpenses(setExpenses)
   }, [])
   const handleDeleteClick = (expense) => {
     setSelectedExpense(expense) // Ensure the correct expense object is set
     setShowDeleteModal(true)
   }
-  // Handle add expense
-  const handleAddExpense = async (newExpense) => {
-    try {
-      if (!newExpense) return
-      const formData = {
-        date: newExpense.date,
-        amount: newExpense.amount,
-        description: newExpense.description,
-      }
 
-      const response = await fetch('http://localhost:3001/api/expenses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData), // Send the FormData
-      })
-      if (response.ok) {
-        const addedExpense = await response.json()
-
-        // Update the state with the new expense including its
-        const updatedExpense = {
-          id: addedExpense.id,
-          date: addedExpense.date,
-          amount: addedExpense.amount,
-          description: addedExpense.description,
-        }
-        setExpenses((prevExpenses) => [...prevExpenses, updatedExpense])
-        fetchExpenses()
-        setShowModal(false)
-        // Reset form data after adding a expense
-        setFormData(initialFormData)
-      } else {
-        console.error('Failed to add the expense')
-      }
-    } catch (error) {
-      console.error('Error adding expense:', error)
-    }
-  }
-  const handleAddSubmit = (e) => {
-    e.preventDefault()
-    const newExpense = {
-      date: formData.date,
-      amount: formData.amount,
-      description: formData.description,
-    }
-    handleAddExpense(newExpense)
-  }
-  // Handle delete
-  const handleConfirmDelete = async () => {
-    if (!selectedExpense) return // Ensure selectedExpense is set
-    try {
-      const response = await fetch(
-        `http://localhost:3001/api/expenses/${selectedExpense}`,
-        {
-          // Use template literal with backticks
-          method: 'DELETE',
-        },
-      )
-      if (response.ok) {
-        // Remove the deleted expense from the state
-        setExpenses(expenses.filter((e) => e.id !== selectedExpense))
-        setSelectedExpense(null) // Reset selectedExpense after deletion
-        setShowDeleteModal(false) // Close the delete modal
-      } else {
-        console.error('Failed to delete expense')
-      }
-    } catch (error) {
-      console.error('Error deleting expense:', error)
-    }
-  }
-
-  // Handle delete all expenses
-  const handleDeleteAll = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/expenses', {
-        method: 'DELETE',
-      })
-
-      if (response.ok) {
-        fetchExpenses() // Re-fetch expenses after all are deleted
-        setShowConfirmModal(false) // Close the modal
-      } else {
-        console.error('Failed to delete all expenses')
-      }
-    } catch (error) {
-      console.error('Error deleting all expenses:', error)
-    }
-  }
-  const handleUpdate = async (updatedExpense) => {
-    try {
-      // Create a FormData object to handle the file upload and other data
-      const formData = {
-        date: updatedExpense.date,
-        amount: updatedExpense.amount,
-        description: updatedExpense.description,
-      }
-      // Send the updated data to the backend
-      const response = await fetch(
-        `http://localhost:3001/api/expenses/${updatedExpense.id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        },
-      )
-
-      if (!response.ok) {
-        throw new Error('Failed to update the expense')
-      } else {
-        fetchExpenses()
-        setShowUpdateModal(false)
-        setFormData(initialFormData)
-        setIsUpdate(false) // Set update flag to false
-      }
-
-      const result = await response.json()
-      console.log('expense updated successfully:', result)
-
-      // Add any further logic if needed, such as updating the UI or notifying the user
-    } catch (error) {
-      console.error('Error updating expense:', error)
-      // Handle the error, e.g., show an error message to the user
-    }
-  }
-  const handleSubmit = (event) => {
-    event.preventDefault()
-
-    const updatedExpense = {
-      id: selectedExpense.id, // The ID of the expense being updated
-      date: formData.date,
-      amount: formData.amount,
-      description: formData.description,
-    }
-
-    handleUpdate(updatedExpense)
-  }
   const handleUpdateExpense = (expense) => {
     setSelectedExpense(expense)
     setFormData({
@@ -206,74 +51,11 @@ const Expensescontent = () => {
     setIsUpdate(false) // Reset the update flag
   }
 
-  // Filter expenses searching :
-  const filteredExpenses = expenses.filter((expense) => {
-    const searchLower = searchQuery.toLowerCase()
-    return (
-      (expense.date && expense.date.toLowerCase().includes(searchLower)) ||
-      (expense.amount &&
-        expense.amount.toString().toLowerCase().includes(searchLower)) ||
-      (expense.description &&
-        expense.description.toString().toLowerCase().includes(searchLower))
-    )
-  })
   const actions = {
     onDelete: handleDeleteClick,
     onUpdate: handleUpdateExpense,
   }
 
-  const InputsConfig = [
-    {
-      label: 'Date',
-      value: formData.date,
-      type: 'date',
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          date: e.target.value,
-        })),
-      required: !isUpdate, // Only required if it's not an update,
-    },
-    {
-      label: 'Amount',
-      value: formData.amount,
-      type: 'number',
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          amount: e.target.value,
-        })),
-      required: true,
-    },
-    {
-      label: 'Description',
-      value: formData.description,
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          description: e.target.value,
-        })),
-      required: true,
-    },
-  ]
-  const headerConfig = [
-    {
-      title: 'Date',
-      class: 'pb-3 text-start min-w-[25%]',
-    },
-    {
-      title: 'Description',
-      class: 'pb-3 text-start min-w-[25%]',
-    },
-    {
-      title: 'Amount',
-      class: 'pb-3 text-start min-w-[25%]',
-    },
-    {
-      title: 'Manage',
-      class: 'pb-3 pr-12 text-end min-w-[25%]',
-    },
-  ]
   return (
     <main className="container mx-auto p-4 mt-[52px] flex flex-wrap mb-5">
       <div className="w-full max-w-full px-3 mb-6 mx-auto">
@@ -328,7 +110,7 @@ const Expensescontent = () => {
               </div>
             </div>
             <Table
-              data={filteredExpenses}
+              data={filteredExpenses(expenses, searchQuery)}
               actions={actions}
               headerConfig={headerConfig}
               tableTitle={'expenses'}
@@ -338,9 +120,11 @@ const Expensescontent = () => {
       </div>
       {showModal && (
         <AddModal
-          onSubmit={handleAddSubmit}
+          onSubmit={(e) =>
+            handleAddSubmit(e, formData, setExpenses, setShowModal, setFormData)
+          }
           onCancel={() => setShowModal(false)}
-          InputsConfig={InputsConfig}
+          InputsConfig={InputsConfig(formData, setFormData, isUpdate)}
           title={'Expense'}
         />
       )}
@@ -349,22 +133,40 @@ const Expensescontent = () => {
         <ConfirmModal
           title="Delete Expense"
           message={`Are you sure you want to delete this expense?`}
-          onConfirm={handleConfirmDelete}
+          onConfirm={() =>
+            handleConfirmDelete(
+              selectedExpense,
+              setExpenses,
+              expenses,
+              setSelectedExpense,
+              setShowDeleteModal,
+            )
+          }
           onCancel={() => setShowDeleteModal(false)}
         />
       )}
       {showConfirmModal && (
         <ConfirmModal
           message="Are you sure you want to delete all expenses?"
-          onConfirm={handleDeleteAll}
+          onConfirm={() => handleDeleteAll(setExpenses, setShowConfirmModal)}
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
       {showUpdateModal && selectedExpense && (
         <UpdateModal
           title="Expense"
-          InputsConfig={InputsConfig}
-          onSubmit={handleSubmit}
+          InputsConfig={InputsConfig(formData, setFormData, isUpdate)}
+          onSubmit={(e) =>
+            handleSubmit(
+              e,
+              formData,
+              setExpenses,
+              setShowUpdateModal,
+              setFormData,
+              selectedExpense,
+              setIsUpdate,
+            )
+          }
           onCancel={handleCancelUpdate}
         />
       )}
