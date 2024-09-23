@@ -3,9 +3,18 @@ import {
   checkForAlert,
   initialFormData,
 } from '../utilities/productUtils'
-export const fetchProducts = async (setProducts) => {
+export const fetchProducts = async (
+  setProducts,
+  setErrorMessage,
+  setShowErrorPopup,
+) => {
   try {
     const response = await fetch('http://localhost:3001/api/products')
+    if (!response.ok) {
+      setErrorMessage('Failed to fetch products.')
+      setShowErrorPopup(true)
+      return
+    }
     const data = await response.json()
     setProducts(
       data.map((product) => {
@@ -35,9 +44,18 @@ export const fetchProducts = async (setProducts) => {
     console.error('Error fetching products:', error)
   }
 }
-export const fetchCategories = async (setCategories) => {
+export const fetchCategories = async (
+  setCategories,
+  setErrorMessage,
+  setShowErrorPopup,
+) => {
   try {
     const response = await fetch('http://localhost:3001/api/categories')
+    if (!response.ok) {
+      setErrorMessage('Failed to fetch categories.')
+      setShowErrorPopup(true)
+      return
+    }
     const data = await response.json()
     setCategories(data)
   } catch (error) {
@@ -50,6 +68,8 @@ export const handleAddProduct = async (
   setProducts,
   setShowModal,
   setFormData,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   try {
     const formData = new FormData()
@@ -109,14 +129,22 @@ export const handleAddProduct = async (
       // Reset form data after adding a product
       setFormData(initialFormData)
     } else {
-      console.error('Failed to add the product')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to add the product')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error adding product:', error)
   }
 }
 // handel delete all products
-export const handleDeleteAll = async (setProducts, setShowConfirmModal) => {
+export const handleDeleteAll = async (
+  setProducts,
+  setShowConfirmModal,
+  setErrorMessage,
+  setShowErrorPopup,
+) => {
   try {
     const response = await fetch('http://localhost:3001/api/products', {
       method: 'DELETE',
@@ -126,7 +154,10 @@ export const handleDeleteAll = async (setProducts, setShowConfirmModal) => {
       fetchProducts(setProducts) // Re-fetch products after all are deleted
       setShowConfirmModal(false) // Close the modal
     } else {
-      console.error('Failed to delete all products')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to delete all products')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error deleting all products:', error)
@@ -140,6 +171,8 @@ export const handleConfirmDelete = async (
   products,
   setSelectedProduct,
   setShowDeleteModal,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   if (!selectedProduct) return // Ensure selectedProduct is set
   try {
@@ -156,7 +189,10 @@ export const handleConfirmDelete = async (
       setSelectedProduct(null) // Reset selectedProduct after deletion
       setShowDeleteModal(false) // Close the delete modal
     } else {
-      console.error('Failed to delete product')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to delete all products')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error deleting product:', error)
@@ -169,6 +205,8 @@ export const handleAddSubmit = (
   setProducts,
   setShowModal,
   setFormData,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   e.preventDefault()
   const newProduct = {
@@ -185,5 +223,12 @@ export const handleAddSubmit = (
     expiration_date: formData.expirationDate,
     alert_interval: formData.alertInterval,
   }
-  handleAddProduct(newProduct, setProducts, setShowModal, setFormData)
+  handleAddProduct(
+    newProduct,
+    setProducts,
+    setShowModal,
+    setFormData,
+    setErrorMessage,
+    setShowErrorPopup,
+  )
 }

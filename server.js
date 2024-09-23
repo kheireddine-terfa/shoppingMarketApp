@@ -2,7 +2,8 @@ const express = require('express')
 const cors = require('cors')
 const dotenv = require('dotenv')
 const path = require('path')
-
+const appError = require('./utils/appError')
+const globalErrorHandler = require('./controllers/errorController')
 const userRoutes = require('./routes/userRoutes')
 const productRoutes = require('./routes/productRoutes')
 const categoryRoutes = require('./routes/categoryRoutes')
@@ -14,27 +15,44 @@ const saleRoutes = require('./routes/saleRoutes')
 const supplierRoutes = require('./routes/supplierRoutes')
 const supplyRoutes = require('./routes/supplyRoutes')
 
-const server = express()
+const app = express()
+process.on('uncaughtException', (err) => {
+  console.log('Uncaught Exception , Shutting down the Back-End server ...💥')
+  console.log(err.name, err.message)
+  process.exit(1)
+})
 dotenv.config({ path: './config.env' })
 
-server.use(express.urlencoded({ extended: true }))
-server.use(express.json())
-server.use(cors())
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
+app.use(cors())
 
-server.use('/images', express.static(path.join(__dirname, 'public/images')))
+app.use('/images', express.static(path.join(__dirname, 'public/images')))
 
-server.use('/api', userRoutes)
-server.use('/api/products', productRoutes)
-server.use('/api/categories', categoryRoutes)
-server.use('/api/expenses', expenseRoutes)
-server.use('/api/expiration-dates', expirationDateRoutes)
-server.use('/api/product-supplies', productSupplyRoutes)
-server.use('/api/product-sales', productSaleRoutes)
-server.use('/api/sales', saleRoutes)
-server.use('/api/suppliers', supplierRoutes)
-server.use('/api/supplies', supplyRoutes)
-
+app.use('/api', userRoutes)
+app.use('/api/products', productRoutes)
+app.use('/api/categories', categoryRoutes)
+app.use('/api/expenses', expenseRoutes)
+app.use('/api/expiration-dates', expirationDateRoutes)
+app.use('/api/product-supplies', productSupplyRoutes)
+app.use('/api/product-sales', productSaleRoutes)
+app.use('/api/sales', saleRoutes)
+app.use('/api/suppliers', supplierRoutes)
+app.use('/api/supplies', supplyRoutes)
+// handling unhandled Routes
+app.all('*', (req, res, next) => {
+  next(new appError(`can't find ${req.originalUrl} on this app !`, 404))
+})
+app.use(globalErrorHandler)
 const port = process.env.PORT || 3001
-server.listen(port, () => {
-  console.log(`Server is running on port ${port}`)
+const server = app.listen(port, () => {
+  console.log(`server is running on port ${port}`)
+})
+process.on('unhandledRejection', (err) => {
+  console.log('Unhandled Rejection , Shutting Down the Back-End server...💥')
+  console.log(err.name, err.message)
+  // shutting down the server gracefully :
+  server.close(() => {
+    process.exit(1)
+  })
 })

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Table from '../commonComponents/Table'
+import ErrorPopup from '../commonComponents/ErrorPopup'
+
 import {
   filteredProducts,
   modalData,
@@ -31,10 +33,11 @@ const ProductsContent = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [formData, setFormData] = useState(initialFormData)
-
+  const [errorMessage, setErrorMessage] = useState('')
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
   useEffect(() => {
-    fetchProducts(setProducts)
-    fetchCategories(setCategories)
+    fetchProducts(setProducts, setErrorMessage, setShowErrorPopup)
+    fetchCategories(setCategories, setErrorMessage, setShowErrorPopup)
     // eslint-disable-next-line
   }, [])
   const handleDeleteClick = (product) => {
@@ -135,7 +138,15 @@ const ProductsContent = () => {
       {showModal && (
         <AddModal
           onSubmit={(e) =>
-            handleAddSubmit(e, formData, setProducts, setShowModal, setFormData)
+            handleAddSubmit(
+              e,
+              formData,
+              setProducts,
+              setShowModal,
+              setFormData,
+              setErrorMessage,
+              setShowErrorPopup,
+            )
           }
           onCancel={() => setShowModal(false)}
           InputsConfig={InputsConfig(formData, setFormData, categories)}
@@ -153,6 +164,8 @@ const ProductsContent = () => {
               products,
               setSelectedProduct,
               setShowDeleteModal,
+              setErrorMessage,
+              setShowErrorPopup,
             )
           }
           onCancel={() => setShowDeleteModal(false)}
@@ -161,7 +174,14 @@ const ProductsContent = () => {
       {showConfirmModal && (
         <ConfirmModal
           message="Are you sure you want to delete all products?"
-          onConfirm={() => handleDeleteAll(setProducts, setShowConfirmModal)}
+          onConfirm={() =>
+            handleDeleteAll(
+              setProducts,
+              setShowConfirmModal,
+              setErrorMessage,
+              setShowErrorPopup,
+            )
+          }
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
@@ -184,6 +204,12 @@ const ProductsContent = () => {
           }
           data={modalData(selectedProduct, categories)}
           formatDate={(dateString) => new Date(dateString).toLocaleDateString()}
+        />
+      )}
+      {showErrorPopup && (
+        <ErrorPopup
+          message={errorMessage}
+          onClose={() => setShowErrorPopup(false)}
         />
       )}
     </main>
