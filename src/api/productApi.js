@@ -190,7 +190,7 @@ export const handleConfirmDelete = async (
       setShowDeleteModal(false) // Close the delete modal
     } else {
       const errorData = await response.json() // Parse the error message
-      setErrorMessage(errorData.message || 'Failed to delete all products')
+      setErrorMessage(errorData.message || 'Failed to delete the product')
       setShowErrorPopup(true)
       return
     }

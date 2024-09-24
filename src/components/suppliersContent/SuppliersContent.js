@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Table from '../commonComponents/Table'
+import ErrorPopup from '../commonComponents/ErrorPopup'
+
 import {
   filteredSuppliers,
   initialFormData,
@@ -25,10 +27,12 @@ const SuppliersContent = () => {
   const [selectedSupplier, setSelectedSupplier] = useState(null)
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [formData, setFormData] = useState(initialFormData)
   // Fetch suppliers from the backend
   useEffect(() => {
-    fetchSuppliers(setSuppliers)
+    fetchSuppliers(setSuppliers, setErrorMessage, setShowErrorPopup)
   }, [])
   const handleDeleteClick = (supplier) => {
     setSelectedSupplier(supplier) // Ensure the correct supplier object is set
@@ -124,6 +128,8 @@ const SuppliersContent = () => {
               setSuppliers,
               setShowModal,
               setFormData,
+              setErrorMessage,
+              setShowErrorPopup,
             )
           }
           onCancel={() => setShowModal(false)}
@@ -142,6 +148,8 @@ const SuppliersContent = () => {
               suppliers,
               setSelectedSupplier,
               setShowDeleteModal,
+              setErrorMessage,
+              setShowErrorPopup,
             )
           }
           onCancel={() => setShowDeleteModal(false)}
@@ -150,7 +158,14 @@ const SuppliersContent = () => {
       {showConfirmModal && (
         <ConfirmModal
           message="Are you sure you want to delete all suppliers?"
-          onConfirm={() => handleDeleteAll(setSuppliers, setShowConfirmModal)}
+          onConfirm={() =>
+            handleDeleteAll(
+              setSuppliers,
+              setShowConfirmModal,
+              setErrorMessage,
+              setShowErrorPopup,
+            )
+          }
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
@@ -166,9 +181,17 @@ const SuppliersContent = () => {
               setShowUpdateModal,
               setFormData,
               selectedSupplier,
+              setErrorMessage,
+              setShowErrorPopup,
             )
           }
           onCancel={handleCancelUpdate}
+        />
+      )}
+      {showErrorPopup && (
+        <ErrorPopup
+          message={errorMessage}
+          onClose={() => setShowErrorPopup(false)}
         />
       )}
     </main>

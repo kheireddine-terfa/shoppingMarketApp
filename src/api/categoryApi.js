@@ -146,7 +146,6 @@ export const handleSubmit = (
     setCategories,
     setShowUpdateModal,
     setFormData,
-    selectedCategory,
     setIsUpdate,
   )
 }

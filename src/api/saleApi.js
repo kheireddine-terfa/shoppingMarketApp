@@ -114,7 +114,6 @@ export const handleSubmit = (
     setSales,
     setShowUpdateModal,
     setFormData,
-    selectedSale,
     setIsUpdate,
   )
 }

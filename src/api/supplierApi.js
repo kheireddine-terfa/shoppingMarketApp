@@ -1,7 +1,16 @@
 import { initialFormData } from '../utilities/supplierUtils'
-export const fetchSuppliers = async (setSuppliers) => {
+export const fetchSuppliers = async (
+  setSuppliers,
+  setErrorMessage,
+  setShowErrorPopup,
+) => {
   try {
     const response = await fetch('http://localhost:3001/api/suppliers')
+    if (!response.ok) {
+      setErrorMessage('Failed to fetch suppliers , please try again later.')
+      setShowErrorPopup(true)
+      return
+    }
     const data = await response.json()
     setSuppliers(
       data.map((supplier) => {
@@ -26,6 +35,8 @@ export const handleAddSupplier = async (
   setSuppliers,
   setShowModal,
   setFormData,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   try {
     const formData = {
@@ -58,7 +69,10 @@ export const handleAddSupplier = async (
       // Reset form data after adding a supplier
       setFormData(initialFormData)
     } else {
-      console.error('Failed to add the supplier')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to add the supplier')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error adding supplier:', error)
@@ -70,6 +84,8 @@ export const handleAddSubmit = (
   setSuppliers,
   setShowModal,
   setFormData,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   e.preventDefault()
   const newSupplier = {
@@ -77,7 +93,14 @@ export const handleAddSubmit = (
     address: formData.address,
     phone_number: formData.phone_number,
   }
-  handleAddSupplier(newSupplier, setSuppliers, setShowModal, setFormData)
+  handleAddSupplier(
+    newSupplier,
+    setSuppliers,
+    setShowModal,
+    setFormData,
+    setErrorMessage,
+    setShowErrorPopup,
+  )
 }
 
 export const handleUpdate = async (
@@ -85,6 +108,8 @@ export const handleUpdate = async (
   setSuppliers,
   setShowUpdateModal,
   setFormData,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   try {
     // Create a FormData object to handle the file upload and other data
@@ -106,7 +131,10 @@ export const handleUpdate = async (
     )
 
     if (!response.ok) {
-      throw new Error('Failed to update the supplier')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to update the product')
+      setShowErrorPopup(true)
+      return
     } else {
       fetchSuppliers(setSuppliers)
       setShowUpdateModal(false)
@@ -129,6 +157,8 @@ export const handleSubmit = (
   setShowUpdateModal,
   setFormData,
   selectedSupplier,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   e.preventDefault()
 
@@ -144,11 +174,17 @@ export const handleSubmit = (
     setSuppliers,
     setShowUpdateModal,
     setFormData,
-    selectedSupplier,
+    setErrorMessage,
+    setShowErrorPopup,
   )
 }
 // handel delete all suppliers
-export const handleDeleteAll = async (setSuppliers, setShowConfirmModal) => {
+export const handleDeleteAll = async (
+  setSuppliers,
+  setShowConfirmModal,
+  setErrorMessage,
+  setShowErrorPopup,
+) => {
   try {
     const response = await fetch('http://localhost:3001/api/suppliers', {
       method: 'DELETE',
@@ -158,7 +194,10 @@ export const handleDeleteAll = async (setSuppliers, setShowConfirmModal) => {
       fetchSuppliers(setSuppliers) // Re-fetch suppliers after all are deleted
       setShowConfirmModal(false) // Close the modal
     } else {
-      console.error('Failed to delete all suppliers')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to delete all suppliers')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error deleting all suppliers:', error)
@@ -172,6 +211,8 @@ export const handleConfirmDelete = async (
   suppliers,
   setSelectedSupplier,
   setShowDeleteModal,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   if (!selectedSupplier) return // Ensure selectedSupplier is set
   try {
@@ -188,7 +229,10 @@ export const handleConfirmDelete = async (
       setSelectedSupplier(null) // Reset selectedSupplier after deletion
       setShowDeleteModal(false) // Close the delete modal
     } else {
-      console.error('Failed to delete supplier')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to delete the supplier')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error deleting supplier:', error)
