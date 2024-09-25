@@ -1,7 +1,16 @@
 import { initialFormData } from '../utilities/categoryUtils'
-export const fetchCategories = async (setCategories) => {
+export const fetchCategories = async (
+  setCategories,
+  setErrorMessage,
+  setShowErrorPopup,
+) => {
   try {
     const response = await fetch('http://localhost:3001/api/categories')
+    if (!response.ok) {
+      setErrorMessage('Failed to fetch categories , please try again later.')
+      setShowErrorPopup(true)
+      return
+    }
     const data = await response.json()
     setCategories(
       data.map((category) => {
@@ -29,6 +38,8 @@ export const handleAddCategory = async (
   setCategories,
   setShowModal,
   setFormData,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   try {
     const formData = new FormData()
@@ -60,7 +71,10 @@ export const handleAddCategory = async (
       // Reset form data after adding a category
       setFormData(initialFormData)
     } else {
-      console.error('Failed to add the category')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to add the catgory')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error adding category:', error)
@@ -73,13 +87,22 @@ export const handleAddSubmit = (
   setCategories,
   setShowModal,
   setFormData,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   e.preventDefault()
   const newCategory = {
     name: formData.name,
     image: formData.image,
   }
-  handleAddCategory(newCategory, setCategories, setShowModal, setFormData)
+  handleAddCategory(
+    newCategory,
+    setCategories,
+    setShowModal,
+    setFormData,
+    setErrorMessage,
+    setShowErrorPopup,
+  )
 }
 
 export const handleUpdate = async (
@@ -88,6 +111,8 @@ export const handleUpdate = async (
   setShowUpdateModal,
   setFormData,
   setIsUpdate,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   try {
     // Create a FormData object to handle the file upload and other data
@@ -107,7 +132,10 @@ export const handleUpdate = async (
     )
 
     if (!response.ok) {
-      throw new Error('Failed to update the category')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to update the category')
+      setShowErrorPopup(true)
+      return
     } else {
       fetchCategories(setCategories)
       setShowUpdateModal(false)
@@ -132,6 +160,8 @@ export const handleSubmit = (
   setFormData,
   selectedCategory,
   setIsUpdate,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   e.preventDefault()
 
@@ -147,10 +177,17 @@ export const handleSubmit = (
     setShowUpdateModal,
     setFormData,
     setIsUpdate,
+    setErrorMessage,
+    setShowErrorPopup,
   )
 }
 // handel delete all suppliers
-export const handleDeleteAll = async (setCategories, setShowConfirmModal) => {
+export const handleDeleteAll = async (
+  setCategories,
+  setShowConfirmModal,
+  setErrorMessage,
+  setShowErrorPopup,
+) => {
   try {
     const response = await fetch('http://localhost:3001/api/categories', {
       method: 'DELETE',
@@ -160,7 +197,10 @@ export const handleDeleteAll = async (setCategories, setShowConfirmModal) => {
       fetchCategories(setCategories) // Re-fetch categorys after all are deleted
       setShowConfirmModal(false) // Close the modal
     } else {
-      console.error('Failed to delete all categories')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to delete all categories')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error deleting all categories:', error)
@@ -174,6 +214,8 @@ export const handleConfirmDelete = async (
   categories,
   setSelectedCategory,
   setShowDeleteModal,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   if (!selectedCategory) return // Ensure selectedCategory is set
   try {
@@ -190,7 +232,10 @@ export const handleConfirmDelete = async (
       setSelectedCategory(null) // Reset selectedCategory after deletion
       setShowDeleteModal(false) // Close the delete modal
     } else {
-      console.error('Failed to delete category')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to delete the category')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error deleting category:', error)

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Table from '../commonComponents/Table'
+import ErrorPopup from '../commonComponents/ErrorPopup'
+
 import { headerConfig, InputsConfig } from '../../config/categoryConfig'
 import {
   initialFormData,
@@ -27,12 +29,14 @@ const CategoriesContent = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isUpdate, setIsUpdate] = useState(false) // Flag to determine if the form is for update or add
+  const [errorMessage, setErrorMessage] = useState('')
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
 
   const [formData, setFormData] = useState(initialFormData)
   // Fetch categories from the backend
 
   useEffect(() => {
-    fetchCategories(setCategories)
+    fetchCategories(setCategories, setErrorMessage, setShowErrorPopup)
   }, [])
   const handleDeleteClick = (category) => {
     setSelectedCategory(category) // Ensure the correct category object is set
@@ -130,6 +134,8 @@ const CategoriesContent = () => {
               setCategories,
               setShowModal,
               setFormData,
+              setErrorMessage,
+              setShowErrorPopup,
             )
           }
           onCancel={() => setShowModal(false)}
@@ -148,6 +154,8 @@ const CategoriesContent = () => {
               categories,
               setSelectedCategory,
               setShowDeleteModal,
+              setErrorMessage,
+              setShowErrorPopup,
             )
           }
           onCancel={() => setShowDeleteModal(false)}
@@ -156,7 +164,14 @@ const CategoriesContent = () => {
       {showConfirmModal && (
         <ConfirmModal
           message="Are you sure you want to delete all categories?"
-          onConfirm={() => handleDeleteAll(setCategories, setShowConfirmModal)}
+          onConfirm={() =>
+            handleDeleteAll(
+              setCategories,
+              setShowConfirmModal,
+              setErrorMessage,
+              setShowErrorPopup,
+            )
+          }
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
@@ -173,9 +188,17 @@ const CategoriesContent = () => {
               setFormData,
               selectedCategory,
               setIsUpdate,
+              setErrorMessage,
+              setShowErrorPopup,
             )
           }
           onCancel={handleCancelUpdate}
+        />
+      )}
+      {showErrorPopup && (
+        <ErrorPopup
+          message={errorMessage}
+          onClose={() => setShowErrorPopup(false)}
         />
       )}
     </main>
