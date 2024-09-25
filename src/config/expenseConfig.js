@@ -15,6 +15,7 @@ export const InputsConfig = (formData, setFormData, isUpdate) => {
       label: 'Amount',
       value: formData.amount,
       type: 'number',
+      min: 1,
       onChange: (e) =>
         setFormData((prevData) => ({
           ...prevData,

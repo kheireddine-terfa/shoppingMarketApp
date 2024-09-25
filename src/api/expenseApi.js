@@ -1,7 +1,16 @@
 import { initialFormData } from '../utilities/expenseUtils'
-export const fetchExpenses = async (setExpenses) => {
+export const fetchExpenses = async (
+  setExpenses,
+  setErrorMessage,
+  setShowErrorPopup,
+) => {
   try {
     const response = await fetch('http://localhost:3001/api/expenses')
+    if (!response.ok) {
+      setErrorMessage('Failed to fetch expenses , please try again later.')
+      setShowErrorPopup(true)
+      return
+    }
     const data = await response.json()
     setExpenses(
       data.map((expense) => {
@@ -25,6 +34,8 @@ export const handleAddSupplier = async (
   setExpenses,
   setShowModal,
   setFormData,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   try {
     if (!newExpense) return
@@ -52,12 +63,15 @@ export const handleAddSupplier = async (
         description: addedExpense.description,
       }
       setExpenses((prevExpenses) => [...prevExpenses, updatedExpense])
-      fetchExpenses(setExpenses)
+      fetchExpenses(setExpenses, setErrorMessage, setShowErrorPopup)
       setShowModal(false)
       // Reset form data after adding a expense
       setFormData(initialFormData)
     } else {
-      console.error('Failed to add the expense')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to add the expense')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error adding expense:', error)
@@ -69,6 +83,8 @@ export const handleAddSubmit = (
   setExpenses,
   setShowModal,
   setFormData,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   e.preventDefault()
   const newExpense = {
@@ -76,7 +92,14 @@ export const handleAddSubmit = (
     amount: formData.amount,
     description: formData.description,
   }
-  handleAddSupplier(newExpense, setExpenses, setShowModal, setFormData)
+  handleAddSupplier(
+    newExpense,
+    setExpenses,
+    setShowModal,
+    setFormData,
+    setErrorMessage,
+    setShowErrorPopup,
+  )
 }
 
 export const handleUpdate = async (
@@ -85,6 +108,8 @@ export const handleUpdate = async (
   setShowUpdateModal,
   setFormData,
   setIsUpdate,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   try {
     // Create a FormData object to handle the file upload and other data
@@ -106,9 +131,12 @@ export const handleUpdate = async (
     )
 
     if (!response.ok) {
-      throw new Error('Failed to update the expense')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to update the expense')
+      setShowErrorPopup(true)
+      return
     } else {
-      fetchExpenses(setExpenses)
+      fetchExpenses(setExpenses, setErrorMessage, setShowErrorPopup)
       setShowUpdateModal(false)
       setFormData(initialFormData)
       setIsUpdate(false) // Set update flag to false
@@ -131,6 +159,8 @@ export const handleSubmit = (
   setFormData,
   selectedExpense,
   setIsUpdate,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   e.preventDefault()
 
@@ -147,20 +177,30 @@ export const handleSubmit = (
     setShowUpdateModal,
     setFormData,
     setIsUpdate,
+    setErrorMessage,
+    setShowErrorPopup,
   )
 }
 // handel delete all suppliers
-export const handleDeleteAll = async (setExpenses, setShowConfirmModal) => {
+export const handleDeleteAll = async (
+  setExpenses,
+  setShowConfirmModal,
+  setErrorMessage,
+  setShowErrorPopup,
+) => {
   try {
     const response = await fetch('http://localhost:3001/api/expenses', {
       method: 'DELETE',
     })
 
     if (response.ok) {
-      fetchExpenses(setExpenses) // Re-fetch expenses after all are deleted
+      fetchExpenses(setExpenses, setErrorMessage, setShowErrorPopup) // Re-fetch expenses after all are deleted
       setShowConfirmModal(false) // Close the modal
     } else {
-      console.error('Failed to delete all expenses')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to delete all expenses')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error deleting all expenses:', error)
@@ -174,6 +214,8 @@ export const handleConfirmDelete = async (
   expenses,
   setSelectedExpense,
   setShowDeleteModal,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   if (!selectedExpense) return // Ensure selectedExpense is set
   try {
@@ -190,7 +232,10 @@ export const handleConfirmDelete = async (
       setSelectedExpense(null) // Reset selectedExpense after deletion
       setShowDeleteModal(false) // Close the delete modal
     } else {
-      console.error('Failed to delete expense')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to delete the expense')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error deleting expense:', error)

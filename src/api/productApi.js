@@ -124,7 +124,7 @@ export const handleAddProduct = async (
             : 'text-red-900 bg-red-200',
       }
       setProducts((prevProducts) => [...prevProducts, updatedProduct])
-      fetchProducts(setProducts)
+      fetchProducts(setProducts, setErrorMessage, setShowErrorPopup)
       setShowModal(false)
       // Reset form data after adding a product
       setFormData(initialFormData)
@@ -151,7 +151,7 @@ export const handleDeleteAll = async (
     })
 
     if (response.ok) {
-      fetchProducts(setProducts) // Re-fetch products after all are deleted
+      fetchProducts(setProducts, setErrorMessage, setShowErrorPopup) // Re-fetch products after all are deleted
       setShowConfirmModal(false) // Close the modal
     } else {
       const errorData = await response.json() // Parse the error message

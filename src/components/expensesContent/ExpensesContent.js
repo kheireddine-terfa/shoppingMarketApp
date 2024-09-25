@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Table from '../commonComponents/Table'
+import ErrorPopup from '../commonComponents/ErrorPopup'
+
 import ConfirmModal from '../commonComponents/ConfirmModal'
 import UpdateModal from '../commonComponents/UpdateModal'
 import AddModal from '../commonComponents/AddModal'
@@ -23,11 +25,14 @@ const Expensescontent = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isUpdate, setIsUpdate] = useState(false) // Flag to determine if the form is for update or add
+  const [errorMessage, setErrorMessage] = useState('')
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
+
   const [formData, setFormData] = useState(initialFormData)
   // Fetch expenses from the backend
 
   useEffect(() => {
-    fetchExpenses(setExpenses)
+    fetchExpenses(setExpenses, setErrorMessage, setShowErrorPopup)
   }, [])
   const handleDeleteClick = (expense) => {
     setSelectedExpense(expense) // Ensure the correct expense object is set
@@ -121,7 +126,15 @@ const Expensescontent = () => {
       {showModal && (
         <AddModal
           onSubmit={(e) =>
-            handleAddSubmit(e, formData, setExpenses, setShowModal, setFormData)
+            handleAddSubmit(
+              e,
+              formData,
+              setExpenses,
+              setShowModal,
+              setFormData,
+              setErrorMessage,
+              setShowErrorPopup,
+            )
           }
           onCancel={() => setShowModal(false)}
           InputsConfig={InputsConfig(formData, setFormData, isUpdate)}
@@ -140,6 +153,8 @@ const Expensescontent = () => {
               expenses,
               setSelectedExpense,
               setShowDeleteModal,
+              setErrorMessage,
+              setShowErrorPopup,
             )
           }
           onCancel={() => setShowDeleteModal(false)}
@@ -148,7 +163,14 @@ const Expensescontent = () => {
       {showConfirmModal && (
         <ConfirmModal
           message="Are you sure you want to delete all expenses?"
-          onConfirm={() => handleDeleteAll(setExpenses, setShowConfirmModal)}
+          onConfirm={() =>
+            handleDeleteAll(
+              setExpenses,
+              setShowConfirmModal,
+              setErrorMessage,
+              setShowErrorPopup,
+            )
+          }
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
@@ -165,9 +187,17 @@ const Expensescontent = () => {
               setFormData,
               selectedExpense,
               setIsUpdate,
+              setErrorMessage,
+              setShowErrorPopup,
             )
           }
           onCancel={handleCancelUpdate}
+        />
+      )}
+      {showErrorPopup && (
+        <ErrorPopup
+          message={errorMessage}
+          onClose={() => setShowErrorPopup(false)}
         />
       )}
     </main>

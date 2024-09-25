@@ -66,7 +66,7 @@ export const handleAddCategory = async (
         title: addedCategory.name,
       }
       setCategories((prevCategories) => [...prevCategories, updatedCategory])
-      fetchCategories(setCategories)
+      fetchCategories(setCategories, setErrorMessage, setShowErrorPopup)
       setShowModal(false)
       // Reset form data after adding a category
       setFormData(initialFormData)
@@ -137,7 +137,7 @@ export const handleUpdate = async (
       setShowErrorPopup(true)
       return
     } else {
-      fetchCategories(setCategories)
+      fetchCategories(setCategories, setErrorMessage, setShowErrorPopup)
       setShowUpdateModal(false)
       setFormData(initialFormData)
       setIsUpdate(false) // Set update flag to false
@@ -194,7 +194,7 @@ export const handleDeleteAll = async (
     })
 
     if (response.ok) {
-      fetchCategories(setCategories) // Re-fetch categorys after all are deleted
+      fetchCategories(setCategories, setErrorMessage, setShowErrorPopup) // Re-fetch categorys after all are deleted
       setShowConfirmModal(false) // Close the modal
     } else {
       const errorData = await response.json() // Parse the error message

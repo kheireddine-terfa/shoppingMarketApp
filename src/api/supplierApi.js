@@ -64,7 +64,7 @@ export const handleAddSupplier = async (
         phone_number: addedSupplier.phone_number,
       }
       setSuppliers((prevSuppliers) => [...prevSuppliers, updatedSupplier])
-      fetchSuppliers(setSuppliers)
+      fetchSuppliers(setSuppliers, setErrorMessage, setShowErrorPopup)
       setShowModal(false)
       // Reset form data after adding a supplier
       setFormData(initialFormData)
@@ -136,7 +136,7 @@ export const handleUpdate = async (
       setShowErrorPopup(true)
       return
     } else {
-      fetchSuppliers(setSuppliers)
+      fetchSuppliers(setSuppliers, setErrorMessage, setShowErrorPopup)
       setShowUpdateModal(false)
       setFormData(initialFormData)
     }
@@ -191,7 +191,7 @@ export const handleDeleteAll = async (
     })
 
     if (response.ok) {
-      fetchSuppliers(setSuppliers) // Re-fetch suppliers after all are deleted
+      fetchSuppliers(setSuppliers, setErrorMessage, setShowErrorPopup) // Re-fetch suppliers after all are deleted
       setShowConfirmModal(false) // Close the modal
     } else {
       const errorData = await response.json() // Parse the error message
