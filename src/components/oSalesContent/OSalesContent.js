@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Table from '../commonComponents/Table'
+import ErrorPopup from '../commonComponents/ErrorPopup'
+
 import ConfirmModal from '../commonComponents/ConfirmModal'
 import UpdateModal from '../commonComponents/UpdateModal'
 import DetailsModal from '../commonComponents/DetailsModal'
@@ -27,13 +29,16 @@ const OSalesContent = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [isUpdate, setIsUpdate] = useState(false) // Flag to determine if the form is for update or add
+  const [errorMessage, setErrorMessage] = useState('')
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
+
   const [formData, setFormData] = useState(initialFormData)
 
   useEffect(() => {
-    fetchSales(setSales)
+    fetchSales(setSales, setErrorMessage, setShowErrorPopup)
   }, [])
   useEffect(() => {
-    fetchProducts(selectedSale, setProducts)
+    fetchProducts(selectedSale, setProducts, setErrorMessage, setShowErrorPopup)
   }, [selectedSale])
   const handleShowDetails = (sale) => {
     setSelectedSale(sale)
@@ -138,6 +143,8 @@ const OSalesContent = () => {
               sales,
               setSelectedSale,
               setShowDeleteModal,
+              setErrorMessage,
+              setShowErrorPopup,
             )
           }
           onCancel={() => setShowDeleteModal(false)}
@@ -146,7 +153,14 @@ const OSalesContent = () => {
       {showConfirmModal && (
         <ConfirmModal
           message="Are you sure you want to delete all sales?"
-          onConfirm={() => handleDeleteAll(setSales, setShowConfirmModal)}
+          onConfirm={() =>
+            handleDeleteAll(
+              setSales,
+              setShowConfirmModal,
+              setErrorMessage,
+              setShowErrorPopup,
+            )
+          }
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
@@ -163,6 +177,8 @@ const OSalesContent = () => {
               setFormData,
               selectedSale,
               setIsUpdate,
+              setErrorMessage,
+              setShowErrorPopup,
             )
           }
           onCancel={handleCancelUpdate}
@@ -180,6 +196,12 @@ const OSalesContent = () => {
           data={modalData(selectedSale)}
           formatDate={(dateString) => new Date(dateString).toLocaleDateString()}
           tableData={products}
+        />
+      )}
+      {showErrorPopup && (
+        <ErrorPopup
+          message={errorMessage}
+          onClose={() => setShowErrorPopup(false)}
         />
       )}
     </main>

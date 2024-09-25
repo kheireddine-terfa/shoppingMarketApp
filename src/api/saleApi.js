@@ -1,7 +1,16 @@
 import { initialFormData } from '../utilities/supplierUtils'
-export const fetchSales = async (setSales) => {
+export const fetchSales = async (
+  setSales,
+  setErrorMessage,
+  setShowErrorPopup,
+) => {
   try {
     const response = await fetch('http://localhost:3001/api/product-sales')
+    if (!response.ok) {
+      setErrorMessage('Failed to fetch sales , please try again later.')
+      setShowErrorPopup(true)
+      return
+    }
     const data = await response.json()
     setSales(
       data.map((sale) => {
@@ -20,12 +29,24 @@ export const fetchSales = async (setSales) => {
     console.error('Error fetching sales:', error)
   }
 }
-export const fetchProducts = async (selectedSale, setProducts) => {
+export const fetchProducts = async (
+  selectedSale,
+  setProducts,
+  setErrorMessage,
+  setShowErrorPopup,
+) => {
   if (!selectedSale) return
   try {
     const response = await fetch(
       `http://localhost:3001/api/product-sales/${selectedSale.id}`,
     )
+    if (!response.ok) {
+      setErrorMessage(
+        'Failed to fetch products of sale , please try again later.',
+      )
+      setShowErrorPopup(true)
+      return
+    }
     const data = await response.json()
     setProducts(
       data.map((item) => {
@@ -49,6 +70,8 @@ export const handleUpdate = async (
   setShowUpdateModal,
   setFormData,
   setIsUpdate,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   try {
     // Create a FormData object to handle the file upload and other data
@@ -72,9 +95,12 @@ export const handleUpdate = async (
     )
 
     if (!response.ok) {
-      throw new Error('Failed to update the sale')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to update the sale')
+      setShowErrorPopup(true)
+      return
     } else {
-      fetchSales(setSales)
+      fetchSales(setSales, setErrorMessage, setShowErrorPopup)
       setShowUpdateModal(false)
       setFormData(initialFormData)
       setIsUpdate(false) // Set update flag to false
@@ -97,6 +123,8 @@ export const handleSubmit = (
   setFormData,
   selectedSale,
   setIsUpdate,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   e.preventDefault()
 
@@ -115,20 +143,30 @@ export const handleSubmit = (
     setShowUpdateModal,
     setFormData,
     setIsUpdate,
+    setErrorMessage,
+    setShowErrorPopup,
   )
 }
 // handel delete all suppliers
-export const handleDeleteAll = async (setSales, setShowConfirmModal) => {
+export const handleDeleteAll = async (
+  setSales,
+  setShowConfirmModal,
+  setErrorMessage,
+  setShowErrorPopup,
+) => {
   try {
     const response = await fetch('http://localhost:3001/api/sales', {
       method: 'DELETE',
     })
 
     if (response.ok) {
-      fetchSales(setSales) // Re-fetch sales after all are deleted
+      fetchSales(setSales, setErrorMessage, setShowErrorPopup) // Re-fetch sales after all are deleted
       setShowConfirmModal(false) // Close the modal
     } else {
-      console.error('Failed to delete all sales')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to delete all sales')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error deleting all sales:', error)
@@ -142,6 +180,8 @@ export const handleConfirmDelete = async (
   sales,
   setSelectedSale,
   setShowDeleteModal,
+  setErrorMessage,
+  setShowErrorPopup,
 ) => {
   if (!selectedSale) return // Ensure selectedSale is set
   try {
@@ -158,7 +198,10 @@ export const handleConfirmDelete = async (
       setSelectedSale(null) // Reset selectedSale after deletion
       setShowDeleteModal(false) // Close the delete modal
     } else {
-      console.error('Failed to delete sale')
+      const errorData = await response.json() // Parse the error message
+      setErrorMessage(errorData.message || 'Failed to delete the sale')
+      setShowErrorPopup(true)
+      return
     }
   } catch (error) {
     console.error('Error deleting sale:', error)

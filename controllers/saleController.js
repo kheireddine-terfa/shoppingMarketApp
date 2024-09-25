@@ -1,6 +1,8 @@
 const { Sale, ProductSale, Product } = require('../models')
 const { Op } = require('sequelize')
 const { sequelize } = require('../models') // Use require instead of import
+const AppError = require('../utils/appError')
+const catchAsync = require('../utils/catchAsync')
 
 async function getSalesCountByDate(req, res) {
   try {
@@ -188,143 +190,97 @@ async function getSumOfPaidAmounts(req, res) {
     })
   }
 }
+// You Need to wrrap the function inside the catchAsync function and also use the AppError Class to send custom errors above ..AZ
+const createSale = catchAsync(async (req, res, next) => {
+  const { date, amount, paid_amount, remaining_amount, description } = req.body
+  const sale = await Sale.create({
+    date,
+    amount,
+    paid_amount,
+    remaining_amount,
+    description,
+  })
+  res.status(201).json(sale)
+})
 
-const createSale = async (req, res) => {
-  try {
-    const {
-      date,
-      amount,
-      paid_amount,
-      remaining_amount,
-      description,
-    } = req.body
-    if (!date || !amount || !paid_amount || remaining_amount === undefined) {
-      return res.status(400).json({ error: 'Missing required fields' })
-    }
-    const sale = await Sale.create({
+const getSales = catchAsync(async (req, res, next) => {
+  const sales = await Sale.findAll()
+  res.status(200).json(sales)
+})
+
+const getSaleById = catchAsync(async (req, res, next) => {
+  const { id } = req.params
+  const sale = await Sale.findByPk(id)
+  if (!sale) {
+    return next(new AppError('sale not found !', 404))
+  }
+  res.status(200).json(sale)
+})
+
+const updateSale = catchAsync(async (req, res, next) => {
+  const { id } = req.params
+  const { date, amount, paid_amount, remaining_amount, description } = req.body
+  const sale = await Sale.findByPk(id)
+  if (sale) {
+    await sale.update({
       date,
       amount,
       paid_amount,
       remaining_amount,
       description,
     })
-    res.status(201).json(sale)
-  } catch (error) {
-    console.error('Error creating sale:', error)
-    res.status(500).json({ error: 'Failed to create sale' })
+    res.status(200).json(sale)
+  } else {
+    return next(new AppError('sale to update not found'))
   }
-}
+})
 
-const getSales = async (req, res) => {
-  try {
-    const sales = await Sale.findAll()
-    res.status(200).json(sales)
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch sales' })
+const deleteSale = catchAsync(async (req, res, next) => {
+  const { id } = req.params
+  // Find all product-sales for the saleId
+  const productSales = await ProductSale.findAll({ where: { saleId: id } })
+
+  if (productSales.length === 0) {
+    return next(new AppError('no product found for this sale', 404))
   }
-}
 
-const getSaleById = async (req, res) => {
-  try {
-    const { id } = req.params
-    const sale = await Sale.findByPk(id)
-    if (sale) {
-      res.status(200).json(sale)
-    } else {
-      res.status(404).json({ error: 'Sale not found' })
+  // Loop through each product-sale and update the corresponding product's quantity
+  for (const productSale of productSales) {
+    const product = await Product.findByPk(productSale.productId)
+
+    if (product) {
+      // Increase the product quantity by the quantity from the sale
+      product.quantity += productSale.quantity
+      await product.save()
     }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch sale' })
   }
-}
 
-const updateSale = async (req, res) => {
-  try {
-    const { id } = req.params
-    const {
-      date,
-      amount,
-      paid_amount,
-      remaining_amount,
-      description,
-    } = req.body
-    const sale = await Sale.findByPk(id)
-    console.log('req.body', req.body)
-    if (sale) {
-      await sale.update({
-        date,
-        amount,
-        paid_amount,
-        remaining_amount,
-        description,
-      })
-      res.status(200).json(sale)
-    } else {
-      res.status(404).json({ error: 'Sale not found' })
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update sale' })
+  // Delete the product-sales associated with the sale
+  await ProductSale.destroy({ where: { saleId: id } })
+
+  // Find and delete the sale itself
+  const sale = await Sale.findByPk(id)
+  if (sale) {
+    await sale.destroy()
+    res.status(204).send()
+  } else {
+    return next(new AppError('sale to delete not found !', 404))
   }
-}
+})
 
-const deleteSale = async (req, res) => {
-  try {
-    const { id } = req.params
-    console.log('id-----------------------:', id)
-    // Find all product-sales for the saleId
-    const productSales = await ProductSale.findAll({ where: { saleId: id } })
+const deleteAllSales = catchAsync(async (req, res, next) => {
+  await Sale.destroy({ where: {}, truncate: true })
 
-    if (productSales.length === 0) {
-      return res.status(404).json({ error: 'No products found for this sale' })
-    }
+  // Reset the auto-increment sequence (for SQLite)
+  await Sale.sequelize.query("DELETE FROM sqlite_sequence WHERE name='Sales';")
+  await ProductSale.destroy({ where: {}, truncate: true })
 
-    // Loop through each product-sale and update the corresponding product's quantity
-    for (const productSale of productSales) {
-      const product = await Product.findByPk(productSale.productId)
-
-      if (product) {
-        // Increase the product quantity by the quantity from the sale
-        product.quantity += productSale.quantity
-        await product.save()
-      }
-    }
-
-    // Delete the product-sales associated with the sale
-    await ProductSale.destroy({ where: { saleId: id } })
-
-    // Find and delete the sale itself
-    const sale = await Sale.findByPk(id)
-    if (sale) {
-      await sale.destroy()
-      res.status(204).send()
-    } else {
-      res.status(404).json({ error: 'Sale not found' })
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete sale' })
-  }
-}
-
-const deleteAllSales = async (req, res) => {
-  try {
-    await Sale.destroy({ where: {}, truncate: true })
-
-    // Reset the auto-increment sequence (for SQLite)
-    await Sale.sequelize.query(
-      "DELETE FROM sqlite_sequence WHERE name='Sales';",
-    )
-    await ProductSale.destroy({ where: {}, truncate: true })
-
-    // Reset the auto-increment sequence (for SQLite)
-    await ProductSale.sequelize.query(
-      "DELETE FROM sqlite_sequence WHERE name='ProductSales';",
-    )
-    res.status(200).json({ message: 'All Sales  deleted successfully' })
-  } catch (error) {
-    console.error('Error deleting Sales :', error)
-    res.status(500).json({ error: error.message })
-  }
-}
+  // Reset the auto-increment sequence (for SQLite)
+  await ProductSale.sequelize.query(
+    "DELETE FROM sqlite_sequence WHERE name='ProductSales';",
+  )
+  res.status(200).json({ message: 'All Sales  deleted successfully' })
+})
 
 module.exports = {
   getSalesCountByDate,
