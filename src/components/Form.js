@@ -6,8 +6,8 @@ import Button from './Button'
 const Form = () => {
   // State to manage form data
   const [formData, setFormData] = useState({
-    userName: '',
-    passWord: '',
+    username: '',
+    password: '',
   })
 
   // State to manage response message and status code
@@ -76,21 +76,21 @@ const Form = () => {
         <InputField
           label="User Name"
           type="text"
-          name="userName"
-          id="userName"
+          name="username"
+          id="username"
           placeholder="@abdellatifzidane2024"
           className="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-md focus:border-[#b0b300cd] focus:ring-[#b0b300cd] focus:outline-none focus:ring focus:ring-opacity-40"
-          value={formData.userName}
+          value={formData.username}
           onChange={handleChange}
         />
         <InputField
-          label="Password"
+          label="password"
           type="password"
-          name="passWord"
-          id="passWord"
-          placeholder="Your passWord"
+          name="password"
+          id="password"
+          placeholder="Your password"
           className="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-md focus:border-[#b0b300cd] focus:ring-[#b0b300cd] focus:outline-none focus:ring focus:ring-opacity-40"
-          value={formData.passWord}
+          value={formData.password}
           onChange={handleChange}
         />
         <Button

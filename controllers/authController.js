@@ -9,11 +9,11 @@ const signToken = (id) => {
 //-------------------------------------------
 exports.singUp = async (req, res) => {
   try {
-    const { passWord, userName } = req.body
+    const { password, username } = req.body
     let newUser, token
     //1------- check if the fields are provided
-    if (passWord && userName) {
-      newUser = await User.create({ userName, passWord })
+    if (password && username) {
+      newUser = await User.create({ username, password })
     } else {
       return res.json(404).json({
         status: 'fail',
@@ -23,7 +23,7 @@ exports.singUp = async (req, res) => {
     // 2------- check if the user created
     if (newUser) {
       //3--------- sign the token
-      const id = newUser.dataValues.userName
+      const id = newUser.dataValues.username
       token = signToken(id)
     }
     //4----------- send a response containing the newly created user and the token
@@ -39,10 +39,10 @@ exports.singUp = async (req, res) => {
 //-------------------------------------------
 
 exports.login = async (req, res) => {
-  const { passWord, userName } = req.body
+  const { password, username } = req.body
   console.log('--------------', req.body)
   // 1--------- check if the user provide the username and password
-  if (!passWord || !userName) {
+  if (!password || !username) {
     return res.status(403).json({
       status: 'fail',
       message:
@@ -50,7 +50,7 @@ exports.login = async (req, res) => {
     })
   }
   // 2 ---------- check if the user exists based on his username
-  const user = await User.findOne({ where: { userName } })
+  const user = await User.findOne({ where: { username } })
   if (!user) {
     return res
       .status(401)
@@ -58,12 +58,12 @@ exports.login = async (req, res) => {
   }
   console.log(user)
   // 3 ---------- check if the password correct :
-  const isMatch = await bcrypt.compare(passWord, user.passWord)
+  const isMatch = await bcrypt.compare(password, user.password)
   if (!isMatch) {
     return res.status(401).json({ message: 'Invalid username or password' })
   }
   //4 -------- Generate JWT token
-  const token = signToken(user.userName)
+  const token = signToken(user.username)
   //5 --------- store the token in user cookies :
   const cookieOptions = {
     expires: new Date(

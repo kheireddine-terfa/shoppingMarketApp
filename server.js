@@ -14,6 +14,8 @@ const productSaleRoutes = require('./routes/productSaleRoutes')
 const saleRoutes = require('./routes/saleRoutes')
 const supplierRoutes = require('./routes/supplierRoutes')
 const supplyRoutes = require('./routes/supplyRoutes')
+const pageRoutes = require('./routes/pageRoutes')
+const roleRoutes = require('./routes/roleRoutes')
 
 const app = express()
 process.on('uncaughtException', (err) => {
@@ -39,6 +41,9 @@ app.use('/api/product-sales', productSaleRoutes)
 app.use('/api/sales', saleRoutes)
 app.use('/api/suppliers', supplierRoutes)
 app.use('/api/supplies', supplyRoutes)
+app.use('/api/pages', pageRoutes)
+app.use('/api/roles', roleRoutes)
+
 // handling unhandled Routes
 app.all('*', (req, res, next) => {
   next(new appError(`can't find ${req.originalUrl} on this app !`, 404))

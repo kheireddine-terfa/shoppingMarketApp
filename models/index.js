@@ -17,6 +17,9 @@ const sequelize = new Sequelize({
 
 // Import models
 const UserModel = require('./userModel')
+const RoleModel = require('./roleModel')
+const PageModel = require('./pageModel')
+const RolePageModel = require('./rolePageModel')
 const ProductModel = require('./productModel')
 const SupplierModel = require('./supplierModel')
 const SupplyModel = require('./supplyModel')
@@ -29,6 +32,9 @@ const ProductSupplyModel = require('./productSupplyModel')
 
 // Initialize models
 const User = UserModel(sequelize, DataTypes)
+const Role = RoleModel(sequelize, DataTypes)
+const Page = PageModel(sequelize, DataTypes)
+const RolePage = RolePageModel(sequelize, DataTypes)
 const Product = ProductModel(sequelize, DataTypes)
 const Supplier = SupplierModel(sequelize, DataTypes)
 const Supply = SupplyModel(sequelize, DataTypes)
@@ -71,6 +77,20 @@ Sale.belongsToMany(Product, {
 ProductSale.belongsTo(Product, { foreignKey: 'productId', as: 'Product' })
 ProductSale.belongsTo(Sale, { foreignKey: 'saleId', as: 'Sale' })
 
+User.belongsTo(Role, { foreignKey: 'role_id', as: 'role', onDelete: 'CASCADE' })
+
+Role.belongsToMany(Page, {
+  through: RolePage,
+  foreignKey: 'role_id',
+  as: 'pages',
+  onDelete: 'CASCADE',
+})
+Page.belongsToMany(Role, {
+  through: RolePage,
+  foreignKey: 'page_id',
+  as: 'roles',
+  onDelete: 'CASCADE',
+})
 // Sync database without forcing table recreation
 
 sequelize.sync({ force: false }).then(() => {
@@ -88,4 +108,7 @@ module.exports = {
   ExpirationDate,
   Category,
   ProductSale,
+  Page,
+  Role,
+  RolePage,
 }
