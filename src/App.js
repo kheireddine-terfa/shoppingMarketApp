@@ -23,6 +23,8 @@ import StatisticsPage from './pages/StatisticsPage'
 import CategoriesPage from './pages/CategoriesPage'
 import OSalesPage from './pages/OSalesPage'
 import ExpensesPage from './pages/ExpensesPage'
+import RolesPage from './pages/RolesPage'
+
 const App = () => {
   return (
     <div className=" app-container bg-zinc-100">
@@ -38,6 +40,8 @@ const App = () => {
           <Route path="/statistics" element={<StatisticsPage />}></Route>
           <Route path="/categories" element={<CategoriesPage />}></Route>
           <Route path="/expenses" element={<ExpensesPage />}></Route>
+          <Route path="/roles" element={<RolesPage />}></Route>
+
         </Routes>
       </BrowserRouter>
     </div>
