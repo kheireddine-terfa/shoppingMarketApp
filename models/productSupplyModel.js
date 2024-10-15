@@ -25,6 +25,31 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
     });
-  
+
+
+    ProductSupply.afterCreate(async (productSupply) => {
+      try {
+        // increase the product quantity
+        const product = await sequelize.models.Product.findByPk(productSupply.productId);
+        if (product) {
+          await product.update({ quantity: product.quantity + productSupply.quantity });
+        }
+      } catch (error) {
+        console.error('Error updating product quantity after create:', error);
+      }
+    });
+
+    ProductSupply.afterDestroy(async (productSupply) => {
+      try {
+        // decrease the product quantity
+        const product = await sequelize.models.Product.findByPk(productSupply.productId);
+        if (product) {
+          await product.update({ quantity: product.quantity - productSupply.quantity });
+        }
+      } catch (error) {
+        console.error('Error updating product quantity after delete:', error);
+      }
+    });
+   
     return ProductSupply;
   };
