@@ -39,7 +39,8 @@ export const filteredProducts = (products, searchQuery) => {
       (product.inventoryState &&
         product.inventoryState.toLowerCase().includes(searchLower)) ||
       (product.price.toString() &&
-        product.price.toString().toLowerCase().includes(searchLower))
+        product.price.toString().toLowerCase().includes(searchLower)) ||
+      (product.barCode && product.barCode.toLowerCase().includes(searchLower))
     )
   })
 }

@@ -9,10 +9,10 @@ const signToken = (id) => {
 //-------------------------------------------
 exports.singUp = async (req, res) => {
   try {
-    const { password, username } = req.body
+    const { password, username, passwordConfirm } = req.body
     let newUser, token
     //1------- check if the fields are provided
-    if (password && username) {
+    if (password && username && passwordConfirm) {
       newUser = await User.create({ username, password })
     } else {
       return res.json(404).json({

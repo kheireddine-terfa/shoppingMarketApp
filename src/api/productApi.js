@@ -32,6 +32,7 @@ export const fetchProducts = async (
           titleHref: `/product/${product.id}`,
           title: product.name,
           price: `${product.price} DA`,
+          barCode: product.bare_code,
           inventoryState,
           inventoryStateClass,
           currentProduct: product,
