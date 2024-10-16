@@ -1,4 +1,4 @@
-const { Role, RolePage, Page } = require('../models')
+const { Role, RolePage, Page, User } = require('../models')
 const AppError = require('../utils/appError')
 const catchAsync = require('../utils/catchAsync')
 const createRole = catchAsync(async (req, res, next) => {
@@ -130,10 +130,40 @@ const deleteAllRoles = catchAsync(async (req, res, next) => {
     message: 'all Roles deleted successfully',
   })
 })
+const getUsersAndRoles = catchAsync(async (req, res, next) => {
+  const users = await User.findAll({ where: { role_id: null } })
+  const roles = await Role.findAll()
+  res.status(200).json({
+    status: 'success',
+    users,
+    roles,
+  })
+})
+const assignRoleToUser = catchAsync(async (req, res, next) => {
+  const { roleId, userId } = req.body
+  const user = await User.findByPk(userId)
+  const role = await Role.findByPk(roleId)
+  //1 check if the user exists :
+  if (!user) {
+    return next(new AppError('no user found with this ID ', 404))
+  }
+  //2 check if the role exists:
+  if (!role) {
+    return next(new AppError('no role found with this ID ', 404))
+  }
+  user.role_id = roleId
+  await user.save()
+  res.status(200).json({
+    status: 'success',
+    message: `user : ${user.username} assigned to role : ${role.name} successfully `,
+  })
+})
 module.exports = {
   createRole,
   deleteRole,
   updateRole,
   getRoles,
   deleteAllRoles,
+  assignRoleToUser,
+  getUsersAndRoles,
 }

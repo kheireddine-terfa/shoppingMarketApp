@@ -1,4 +1,6 @@
 const { User } = require('../models')
+const catchAsync = require('../utils/catchAsync')
+const AppError = require('../utils/appError')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 console.log(process.env.JWT_SECRET)
@@ -7,35 +9,34 @@ const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET)
 }
 //-------------------------------------------
-exports.singUp = async (req, res) => {
-  try {
-    const { password, username, passwordConfirm } = req.body
-    let newUser, token
-    //1------- check if the fields are provided
-    if (password && username && passwordConfirm) {
-      newUser = await User.create({ username, password })
-    } else {
-      return res.json(404).json({
-        status: 'fail',
-        message: 'please provide your username and password ',
-      })
-    }
-    // 2------- check if the user created
-    if (newUser) {
-      //3--------- sign the token
-      const id = newUser.dataValues.username
-      token = signToken(id)
-    }
-    //4----------- send a response containing the newly created user and the token
-    res.status(201).json({
-      status: 'success',
-      newUser,
-      token,
-    })
-  } catch (error) {
-    console.log('ERROR 💥 :', error)
+exports.singUp = catchAsync(async (req, res, next) => {
+  const { password, username, passwordConfirm } = req.body
+  let newUser, token
+  //1------- check if the fields are provided
+  if (!(password && username && passwordConfirm)) {
+    return next(
+      new AppError(
+        'please provide your username , password and paswordConfirm',
+        400,
+      ),
+    )
   }
-}
+  //1-2 ---- create the user :
+  newUser = await User.create({ username, password, passwordConfirm })
+  // 2------- check if the user created
+  if (newUser) {
+    console.log('new user : ', newUser)
+    //3--------- sign the token
+    const id = newUser.username
+    token = signToken(id)
+  }
+  //4----------- send a response containing the newly created user and the token
+  res.status(201).json({
+    status: 'success',
+    newUser,
+    token,
+  })
+})
 //-------------------------------------------
 
 exports.login = async (req, res) => {
