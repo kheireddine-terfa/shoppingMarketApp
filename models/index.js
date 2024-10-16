@@ -72,7 +72,8 @@ Sale.belongsToMany(Product, {
   foreignKey: 'saleId',
   as: 'Products',
 })
-
+Supply.belongsTo(Supplier, { foreignKey: 'supplierId' })
+Supplier.hasMany(Supply, { foreignKey: 'supplierId' })
 // Ensure you define the reverse association as well if needed
 ProductSale.belongsTo(Product, { foreignKey: 'productId', as: 'Product' })
 ProductSale.belongsTo(Sale, { foreignKey: 'saleId', as: 'Sale' })
@@ -108,6 +109,7 @@ module.exports = {
   ExpirationDate,
   Category,
   ProductSale,
+  ProductSupply,
   Page,
   Role,
   RolePage,

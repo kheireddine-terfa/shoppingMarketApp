@@ -1,27 +1,38 @@
-const express = require('express');
+const express = require('express')
 const {
-  createProductSupply,
-  getProductSupplies,
-  getProductSupplyById,
-  updateProductSupply,
-  deleteProductSupply
-} = require('../controllers/productSupplyController');
+  createSupply,
+  getSupplies,
+  getSupplyById,
+  updateSupply,
+  deleteSupply,
+  deleteAllSupplies,
+  getSupplierBySupplyId,
+  getSuppliedProductsBySupplyId,
+} = require('../controllers/supplyController')
 
-const router = express.Router();
+const router = express.Router()
 
-// Create a new product supply
-router.post('/', createProductSupply);
+// Create a new  supply
+router.post('/', createSupply)
 
-// Get all product supplies
-router.get('/', getProductSupplies);
+// Get all  supplies
+router.get('/', getSupplies)
 
-// Get a single product supply by ID
-router.get('/:id', getProductSupplyById);
+// Get all  supplies
+router.delete('/', deleteAllSupplies)
 
-// Update a product supply by ID
-router.put('/:id', updateProductSupply);
+// Get a single  supply by ID
+router.get('/:id', getSupplyById)
 
-// Delete a product supply by ID
-router.delete('/:id', deleteProductSupply);
+// Update a  supply by ID
+router.put('/:id', updateSupply)
 
-module.exports = router;
+// Delete a  supply by ID
+router.delete('/:id', deleteSupply)
+
+// Route to get supplier by supply ID
+router.get('/:supplyId/supplier', getSupplierBySupplyId);
+
+router.get('/:supplyId/supply', getSuppliedProductsBySupplyId);
+
+module.exports = router

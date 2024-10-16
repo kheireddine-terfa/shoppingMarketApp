@@ -14,6 +14,8 @@ const HomeSideBar = () => {
           <SideBarItem text="Categories" url="/categories" />
           <SideBarItem text="Dépenses" url="/expenses" />
           <SideBarItem text="Roles" url="/roles" />
+          <SideBarItem text="Réapprovisionnements" url="/supplies" />
+
           {/* <SideBarItem text="Ventes" /> */}
         </ul>
       </nav>
