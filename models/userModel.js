@@ -45,20 +45,17 @@ module.exports = (sequelize, DataTypes) => {
         beforeSave: async (user) => {
           if (user.changed('password')) {
             // Check if password was modified
+            // Validate passwordConfirm only if password has changed
+            if (user.password !== user.passwordConfirm) {
+              throw new Error(
+                'Password confirm must be the same as the password.',
+              )
+            }
+
             const hashedPassword = await bcrypt.hash(user.password, 12)
             user.password = hashedPassword // Hash the password and set it
             // Delete passwordConfirm field after hashing
             delete user.passwordConfirm
-          }
-        },
-      },
-      // Add a custom validator
-      validate: {
-        checkPasswordConfirm() {
-          if (this.password !== this.passwordConfirm) {
-            throw new Error(
-              'password confirm must be the same as the password ',
-            )
           }
         },
       },
