@@ -40,7 +40,10 @@ const Form = () => {
       })
 
       const result = await response.json()
-
+      if (result.token) {
+        // Store the token in localStorage
+        localStorage.setItem('token', result.token)
+      }
       // Update the response state with message and status code
       setResponse({
         message: result.message,

@@ -9,7 +9,12 @@ const AddRoleModal = ({ onSubmit, onCancel }) => {
   useEffect(() => {
     const fetchPages = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/pages') // Adjust the API endpoint as needed
+        const token = localStorage.getItem('token')
+        const response = await fetch('http://localhost:3001/api/pages', {
+          headers: {
+            Authorization: `Bearer ${token}`, // Send the token
+          },
+        }) // Adjust the API endpoint as needed
         const data = await response.json()
         setPages(data.pages)
       } catch (error) {

@@ -39,47 +39,66 @@ exports.singUp = catchAsync(async (req, res, next) => {
 })
 //-------------------------------------------
 
-exports.login = async (req, res) => {
+exports.login = catchAsync(async (req, res, next) => {
   const { password, username } = req.body
-  console.log('--------------', req.body)
   // 1--------- check if the user provide the username and password
   if (!password || !username) {
-    return res.status(403).json({
-      status: 'fail',
-      message:
+    return next(
+      new AppError(
         'please provide your username and password to get access to the app',
-    })
+        403,
+      ),
+    )
   }
   // 2 ---------- check if the user exists based on his username
   const user = await User.findOne({ where: { username } })
   if (!user) {
-    return res
-      .status(401)
-      .json({ message: 'Invalid username or password , please try again' })
+    return next(
+      new AppError('Invalid username or password , please try again', 401),
+    )
   }
-  console.log(user)
   // 3 ---------- check if the password correct :
   const isMatch = await bcrypt.compare(password, user.password)
   if (!isMatch) {
-    return res.status(401).json({ message: 'Invalid username or password' })
+    return next(new AppError('Invalid username or password', 401))
   }
   //4 -------- Generate JWT token
   const token = signToken(user.username)
   //5 --------- store the token in user cookies :
-  const cookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
-    ),
-    httpOnly: true,
-  }
-  if (process.env.NODE_ENV === 'production') {
-    cookieOptions.secure = true
-  }
-  res.cookie('token', token, cookieOptions)
+  // const cookieOptions = {
+  //   expires: new Date(
+  //     Date.now() + process.env.COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
+  //   ),
+  //   httpOnly: true,
+  // }
+  // if (process.env.NODE_ENV === 'production') {
+  //   cookieOptions.secure = true
+  // }
+  // res.cookie('token', token, cookieOptions)
   //6--------- Send response with token
   res.status(200).json({
     status: 'success',
     message: 'Login successful.',
     token,
   })
-}
+})
+//-------------------------------------------
+exports.protect = catchAsync(async (req, res, next) => {
+  let token
+
+  // 1. Check if the token is sent in the Authorization header
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1] // Extract the token from the 'Bearer <token>' format
+  }
+
+  // 2. Check if the token exists
+  if (!token) {
+    return next(
+      new AppError('You are not logged in, please login to get access', 401),
+    )
+  }
+  next()
+})

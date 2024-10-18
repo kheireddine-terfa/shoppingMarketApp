@@ -5,7 +5,12 @@ export const fetchSuppliers = async (
   setShowErrorPopup,
 ) => {
   try {
-    const response = await fetch('http://localhost:3001/api/suppliers')
+    const token = localStorage.getItem('token')
+    const response = await fetch('http://localhost:3001/api/suppliers', {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token
+      },
+    })
     if (!response.ok) {
       setErrorMessage('Failed to fetch suppliers , please try again later.')
       setShowErrorPopup(true)
@@ -44,11 +49,12 @@ export const handleAddSupplier = async (
       address: newSupplier.address,
       phone_number: newSupplier.phone_number,
     }
-
+    const token = localStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/suppliers', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`, // Send the token
       },
       body: JSON.stringify(formData), // Send the FormData
     })
@@ -118,6 +124,7 @@ export const handleUpdate = async (
       address: updatedSupplier.address,
       phone_number: updatedSupplier.phone_number,
     }
+    const token = localStorage.getItem('token')
     // Send the updated data to the backend
     const response = await fetch(
       `http://localhost:3001/api/suppliers/${updatedSupplier.id}`,
@@ -125,6 +132,7 @@ export const handleUpdate = async (
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // Send the token
         },
         body: JSON.stringify(formData),
       },
@@ -186,8 +194,12 @@ export const handleDeleteAll = async (
   setShowErrorPopup,
 ) => {
   try {
+    const token = localStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/suppliers', {
       method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token
+      },
     })
 
     if (response.ok) {
@@ -216,11 +228,15 @@ export const handleConfirmDelete = async (
 ) => {
   if (!selectedSupplier) return // Ensure selectedSupplier is set
   try {
+    const token = localStorage.getItem('token')
     const response = await fetch(
       `http://localhost:3001/api/suppliers/${selectedSupplier}`,
       {
         // Use template literal with backticks
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`, // Send the token
+        },
       },
     )
     if (response.ok) {

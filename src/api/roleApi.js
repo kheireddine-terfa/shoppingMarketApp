@@ -5,7 +5,12 @@ export const fetchRoles = async (
   setShowErrorPopup,
 ) => {
   try {
-    const response = await fetch('http://localhost:3001/api/roles')
+    const token = localStorage.getItem('token')
+    const response = await fetch('http://localhost:3001/api/roles', {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token
+      },
+    })
     if (!response.ok) {
       setErrorMessage('Failed to fetch roles , please try again later.')
       setShowErrorPopup(true)
@@ -34,10 +39,13 @@ export const handleAddSubmit = async (
   setShowModal,
 ) => {
   try {
+    const token = localStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/roles', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+
+        Authorization: `Bearer ${token}`, // Send the token
       },
       body: JSON.stringify(roleData),
     })
@@ -69,11 +77,15 @@ export const handleConfirmDelete = async (
 ) => {
   if (!selectedRole) return // Ensure selectedRole is set
   try {
+    const token = localStorage.getItem('token')
     const response = await fetch(
       `http://localhost:3001/api/roles/${selectedRole}`,
       {
         // Use template literal with backticks
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`, // Send the token
+        },
       },
     )
     if (response.ok) {
@@ -99,8 +111,12 @@ export const handleDeleteAll = async (
   setShowErrorPopup,
 ) => {
   try {
+    const token = localStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/roles', {
       method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token
+      },
     })
 
     if (response.ok) {
@@ -124,12 +140,14 @@ export const handleSubmit = async (
   setShowErrorPopup,
 ) => {
   try {
+    const token = localStorage.getItem('token')
     const response = await fetch(
       `http://localhost:3001/api/roles/${roleData.id}`,
       {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // Send the token
         },
         body: JSON.stringify(roleData),
       },

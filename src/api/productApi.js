@@ -9,7 +9,12 @@ export const fetchProducts = async (
   setShowErrorPopup,
 ) => {
   try {
-    const response = await fetch('http://localhost:3001/api/products')
+    const token = localStorage.getItem('token')
+    const response = await fetch('http://localhost:3001/api/products', {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token
+      },
+    })
     if (!response.ok) {
       setErrorMessage('Failed to fetch products.')
       setShowErrorPopup(true)
@@ -51,7 +56,13 @@ export const fetchCategories = async (
   setShowErrorPopup,
 ) => {
   try {
-    const response = await fetch('http://localhost:3001/api/categories')
+    const token = localStorage.getItem('token')
+
+    const response = await fetch('http://localhost:3001/api/categories', {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token
+      },
+    })
     if (!response.ok) {
       setErrorMessage('Failed to fetch categories.')
       setShowErrorPopup(true)
@@ -93,9 +104,13 @@ export const handleAddProduct = async (
     if (newProduct.image) {
       formData.append('image', newProduct.image) // Append the image file
     }
+    const token = localStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/products', {
       method: 'POST',
       body: formData, // Send the FormData
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token
+      },
     })
     if (response.ok) {
       const addedProduct = await response.json()
@@ -147,8 +162,12 @@ export const handleDeleteAll = async (
   setShowErrorPopup,
 ) => {
   try {
+    const token = localStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/products', {
       method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token
+      },
     })
 
     if (response.ok) {
@@ -177,11 +196,16 @@ export const handleConfirmDelete = async (
 ) => {
   if (!selectedProduct) return // Ensure selectedProduct is set
   try {
+    const token = localStorage.getItem('token')
+
     const response = await fetch(
       `http://localhost:3001/api/products/${selectedProduct}`,
       {
         // Use template literal with backticks
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`, // Send the token
+        },
       },
     )
     if (response.ok) {

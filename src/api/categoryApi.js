@@ -5,7 +5,13 @@ export const fetchCategories = async (
   setShowErrorPopup,
 ) => {
   try {
-    const response = await fetch('http://localhost:3001/api/categories')
+    const token = localStorage.getItem('token')
+
+    const response = await fetch('http://localhost:3001/api/categories', {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token
+      },
+    })
     if (!response.ok) {
       setErrorMessage('Failed to fetch categories , please try again later.')
       setShowErrorPopup(true)
@@ -48,9 +54,14 @@ export const handleAddCategory = async (
       formData.append('image', newCategory.image) // Append the image file
       console.log('seeet')
     }
+    const token = localStorage.getItem('token')
+
     const response = await fetch('http://localhost:3001/api/categories', {
       method: 'POST',
       body: formData, // Send the FormData
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token
+      },
     })
     if (response.ok) {
       const addedCategory = await response.json()
@@ -121,6 +132,7 @@ export const handleUpdate = async (
     if (updatedCategory.image) {
       formData.append('image', updatedCategory.image) // Append the category image if it exists
     }
+    const token = localStorage.getItem('token')
 
     // Send the updated data to the backend
     const response = await fetch(
@@ -128,6 +140,9 @@ export const handleUpdate = async (
       {
         method: 'PUT',
         body: formData,
+        headers: {
+          Authorization: `Bearer ${token}`, // Send the token
+        },
       },
     )
 
@@ -189,8 +204,12 @@ export const handleDeleteAll = async (
   setShowErrorPopup,
 ) => {
   try {
+    const token = localStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/categories', {
       method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token
+      },
     })
 
     if (response.ok) {
@@ -219,11 +238,15 @@ export const handleConfirmDelete = async (
 ) => {
   if (!selectedCategory) return // Ensure selectedCategory is set
   try {
+    const token = localStorage.getItem('token')
     const response = await fetch(
       `http://localhost:3001/api/categories/${selectedCategory}`,
       {
         // Use template literal with backticks
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`, // Send the token
+        },
       },
     )
     if (response.ok) {

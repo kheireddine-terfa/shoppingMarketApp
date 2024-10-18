@@ -16,7 +16,7 @@ const supplierRoutes = require('./routes/supplierRoutes')
 const supplyRoutes = require('./routes/supplyRoutes')
 const pageRoutes = require('./routes/pageRoutes')
 const roleRoutes = require('./routes/roleRoutes')
-
+const authController = require('./controllers/authController')
 const app = express()
 process.on('uncaughtException', (err) => {
   console.log('Uncaught Exception , Shutting down the Back-End server ...💥')
@@ -28,10 +28,10 @@ dotenv.config({ path: './config.env' })
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 app.use(cors())
-
 app.use('/images', express.static(path.join(__dirname, 'public/images')))
 
 app.use('/api', userRoutes)
+app.use(authController.protect)
 app.use('/api/products', productRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/expenses', expenseRoutes)

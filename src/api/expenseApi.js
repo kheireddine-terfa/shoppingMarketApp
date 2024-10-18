@@ -5,7 +5,12 @@ export const fetchExpenses = async (
   setShowErrorPopup,
 ) => {
   try {
-    const response = await fetch('http://localhost:3001/api/expenses')
+    const token = localStorage.getItem('token')
+    const response = await fetch('http://localhost:3001/api/expenses', {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token
+      },
+    })
     if (!response.ok) {
       setErrorMessage('Failed to fetch expenses , please try again later.')
       setShowErrorPopup(true)
@@ -44,11 +49,13 @@ export const handleAddSupplier = async (
       amount: newExpense.amount,
       description: newExpense.description,
     }
-
+    const token = localStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/expenses', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+
+        Authorization: `Bearer ${token}`, // Send the token
       },
       body: JSON.stringify(formData), // Send the FormData
     })
@@ -118,6 +125,7 @@ export const handleUpdate = async (
       amount: updatedExpense.amount,
       description: updatedExpense.description,
     }
+    const token = localStorage.getItem('token')
     // Send the updated data to the backend
     const response = await fetch(
       `http://localhost:3001/api/expenses/${updatedExpense.id}`,
@@ -125,6 +133,7 @@ export const handleUpdate = async (
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // Send the token
         },
         body: JSON.stringify(formData),
       },
@@ -189,8 +198,12 @@ export const handleDeleteAll = async (
   setShowErrorPopup,
 ) => {
   try {
+    const token = localStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/expenses', {
       method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`, // Send the token
+      },
     })
 
     if (response.ok) {
@@ -219,11 +232,15 @@ export const handleConfirmDelete = async (
 ) => {
   if (!selectedExpense) return // Ensure selectedExpense is set
   try {
+    const token = localStorage.getItem('token')
     const response = await fetch(
       `http://localhost:3001/api/expenses/${selectedExpense}`,
       {
         // Use template literal with backticks
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`, // Send the token
+        },
       },
     )
     if (response.ok) {
