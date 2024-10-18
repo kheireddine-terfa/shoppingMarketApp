@@ -324,7 +324,7 @@ const TableRow = ({ actions, dataItem, tableTitle }) => {
       <td className="p-3 pl-0 text-start ">
         <div className="flex justify-start gap-3">
           <button
-            onClick={() => actions.onDelete(dataItem.currentSale.id)}
+            onClick={() => actions.onDelete(dataItem.currentSupply.id)}
             className="text-danger"
           >
             <svg
@@ -343,7 +343,7 @@ const TableRow = ({ actions, dataItem, tableTitle }) => {
             </svg>
           </button>
           <button
-            onClick={() => actions.onUpdate(dataItem.currentSale)}
+            onClick={() => actions.onUpdate(dataItem.currentSupply)}
             className="text-primary"
           >
             <svg
