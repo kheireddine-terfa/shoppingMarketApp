@@ -1,5 +1,7 @@
 const { Supply,Supplier } = require('../models')
 const { sequelize } = require('../models'); // Use require instead of import
+const catchAsync = require('../utils/catchAsync')
+const AppError = require('../utils/appError')
 
 
 const createSupply = async (req, res) => {
@@ -30,7 +32,7 @@ const getSupplies = async (req, res) => {
   try {
     console.log('here')
     const supplies = await Supply.findAll({
-      attributes: { exclude: ['supplierId'] },
+      attributes: { },
     })
     res.status(200).json(supplies)
   } catch (error) {
@@ -56,20 +58,21 @@ const updateSupply = async (req, res) => {
   try {
     const { id } = req.params
     const {
-      date,
       amount,
       description,
       paid_amount,
       remaining_amount,
+      supplierId
     } = req.body
     const supply = await Supply.findByPk(id)
+
     if (supply) {
       await supply.update({
-        date,
         amount,
         description,
         paid_amount,
         remaining_amount,
+        supplierId
       })
       res.status(200).json(supply)
     } else {
@@ -96,7 +99,8 @@ const deleteSupply = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete supply' })
   }
 }
-const deleteAllSupplies = async (res, req) => {
+
+const deleteAllSupplies = catchAsync(async (req, res) => {
   try {
     // Delete all supplies from the database
     await Supply.destroy({ where: {}, truncate: true })
@@ -111,13 +115,14 @@ const deleteAllSupplies = async (res, req) => {
     console.error('Error deleting Supplies:', error)
     res.status(500).json({ error: error.message })
   }
-}
+})
 
 async function getSuppliedProductsBySupplyId(req, res) {
   const { supplyId } = req.params; // Assuming supplyId is passed as a URL parameter
   try {
     const result = await sequelize.query(
       `SELECT 
+          ProductSupplies.productId,
           ProductSupplies.quantity, 
           ProductSupplies.purchase_price,
           Products.name 
@@ -173,5 +178,4 @@ module.exports = {
   deleteAllSupplies,
   getSupplierBySupplyId,
   getSuppliedProductsBySupplyId,
-  
 }

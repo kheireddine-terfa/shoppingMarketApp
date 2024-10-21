@@ -11,6 +11,8 @@ const FormInput = ({
   min,
   disabled = false,
   accept = '',
+  name,
+  maxLength,
   ...props
 }) => {
   return (
@@ -36,7 +38,7 @@ const FormInput = ({
           required={required}
           {...props}
         >
-          <option value="">Select an option</option>
+          <option value="">{name}</option>
           {options.map((option) => (
             <option key={option.id} value={option.id}>
               {option.name}
@@ -61,6 +63,8 @@ const FormInput = ({
           required={required}
           min={min}
           disabled={disabled}
+          maxLength={maxLength}
+          onWheel={() => document.activeElement.blur()}
           {...props}
         />
       )}
