@@ -19,7 +19,7 @@ router.get('/', getProductSupplies);
 router.get('/:id', getProductSupplyById);
 
 // Update a product supply by ID
-router.put('/:id', updateProductSupply);
+router.put('/', updateProductSupply);
 
 // Delete a product supply by ID
 router.delete('/:id', deleteProductSupply);
