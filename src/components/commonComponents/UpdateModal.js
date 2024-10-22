@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import FormInput from './FormInput';
-
+import MyAlert from './Alert';
 const UpdateModal = ({ title, InputsConfig, onSubmit, onCancel, supplyId }) => {
   const [productInputs, setProductInputs] = useState([
     { productName: '', productId: '', newProductId: '', quantity: '', purchasePrice: '', searchQuery: '', unit : ''},
@@ -159,6 +159,8 @@ const UpdateModal = ({ title, InputsConfig, onSubmit, onCancel, supplyId }) => {
       </div>
     ))}
 </div>
+          <MyAlert></MyAlert>
+
           {/* Product Inputs Section */}
           {title === "Update Supply" ? (
             <div className="mt-6">

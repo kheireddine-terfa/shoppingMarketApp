@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import FormInput from '../../commonComponents/FormInput';
+import MyAlert from '../../commonComponents/Alert';
+
 
 const AddModalWithProducts = ({ onSubmit, onCancel, InputsConfig, title, theme }) => {
   const [productInputs, setProductInputs] = useState([
     { productId: '', quantity: '', purchasePrice: '', searchQuery: '', unit: '' },
   ]);
   const [products, setProducts] = useState([]);
+  const [showAlert, setShowAlert] = useState(true); // State to control alert visibility
 
   // Fetch Products
   const fetchProducts = async () => {
@@ -15,7 +18,7 @@ const AddModalWithProducts = ({ onSubmit, onCancel, InputsConfig, title, theme }
       const productOptions = data.map((product) => ({
         value: product.id,
         label: product.name,
-        balanced: product.balanced_product, // Include balanced status
+        balanced: product.balanced_product,
       }));
       setProducts(productOptions);
     } catch (error) {
@@ -37,15 +40,9 @@ const AddModalWithProducts = ({ onSubmit, onCancel, InputsConfig, title, theme }
   const handleProductChange = (index, field, value) => {
     const updatedProducts = [...productInputs];
     updatedProducts[index][field] = value;
-    // If the productId is changing, update the unit based on balanced status
     if (field === 'productId') {
       const selectedProduct = products.find((product) => product.value === parseInt(value));
-      console.log(selectedProduct)
-      if(selectedProduct.balanced === false){
-        updatedProducts[index].unit = "units"
-      }else{
-        updatedProducts[index].unit = "grams";
-      }
+      updatedProducts[index].unit = selectedProduct?.balanced ? 'grams' : 'units';
     }
     setProductInputs(updatedProducts);
   };
@@ -80,6 +77,7 @@ const AddModalWithProducts = ({ onSubmit, onCancel, InputsConfig, title, theme }
     <div className={`fixed inset-0 z-50 flex items-center justify-center ${theme === 'dark' ? 'bg-gray-900' : 'bg-black'} bg-opacity-50 overflow-y-auto`}>
       <div className={`bg-white p-6 rounded-lg shadow-lg w-2/4 max-h-screen overflow-y-auto`}>
         <h2 className="text-xl font-semibold mb-4">Add New {title}</h2>
+
         <form onSubmit={handleAddToSupply}>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             {firstColumnInputs.map((inputConfig, index) => (
@@ -119,6 +117,8 @@ const AddModalWithProducts = ({ onSubmit, onCancel, InputsConfig, title, theme }
               ))}
           </div>
 
+          <MyAlert></MyAlert>
+
           {/* Dynamic Product Inputs */}
           <div className="mt-6">
             <h3 className="text-lg font-semibold mb-2">Products</h3>
@@ -155,7 +155,7 @@ const AddModalWithProducts = ({ onSubmit, onCancel, InputsConfig, title, theme }
                 {/* Quantity and Unit */}
                 <div className="flex space-x-4 items-center w-full">
                   <div className="flex items-center space-x-2 w-1/2">
-                  <label className="text-sm font-medium">Quantity {product.unit}</label>
+                    <label className="text-sm font-medium">Quantity {product.unit}</label>
                     <input
                       type="number"
                       placeholder="Quantity"
