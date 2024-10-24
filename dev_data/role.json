@@ -1,0 +1,45 @@
+{
+  "name": "admin",
+  "permissions": [
+    {
+      "page": "products",
+      "actions": "view,add,update,delete"
+    },
+    {
+      "page": "sales",
+      "actions": "view,update,delete"
+    },
+    {
+      "page": "new-sale",
+      "actions": "view,add,delete"
+    },
+    {
+      "page": "categories",
+      "actions": "view,add,update,delete"
+    },
+    {
+      "page": "suppliers",
+      "actions": "view,add,update,delete"
+    },
+    {
+      "page": "supplies",
+      "actions": "view,add,update,delete"
+    },
+    {
+      "page": "expenses",
+      "actions": "view,add,update,delete"
+    },
+    {
+      "page": "roles",
+      "actions": "view,add,update,delete"
+    },
+    {
+      "page": "statistics",
+      "actions": "view"
+    },
+    {
+      "page": "users",
+      "actions": "view,add,update,delete"
+    }
+  ]
+}

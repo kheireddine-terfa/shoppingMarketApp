@@ -1,0 +1,42 @@
+[
+  {
+    "name": "new-sale",
+    "available_actions": "view,add,delete"
+  },
+  {
+    "name": "products",
+    "available_actions": "view,add,update,delete"
+  },
+  {
+    "name": "sales",
+    "available_actions": "view,update,delete"
+  },
+  {
+    "name": "categories",
+    "available_actions": "view,add,update,delete"
+  },
+  {
+    "name": "expenses",
+    "available_actions": "view,add,update,delete"
+  },
+  {
+    "name": "supplies",
+    "available_actions": "view,add,update,delete"
+  },
+  {
+    "name": "suppliers",
+    "available_actions": "view,add,update,delete"
+  },
+  {
+    "name": "roles",
+    "available_actions": "view,add,update,delete"
+  },
+  {
+    "name": "users",
+    "available_actions": "view,add,update,delete"
+  },
+  {
+    "name": "statistics",
+    "available_actions": "view"
+  }
+]

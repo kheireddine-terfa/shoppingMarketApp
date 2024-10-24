@@ -94,9 +94,9 @@ Page.belongsToMany(Role, {
 })
 // Sync database without forcing table recreation
 
-sequelize.sync({ force: false }).then(() => {
-  console.log('Database & tables synced without dropping existing data!')
-})
+// sequelize.sync({ force: false }).then(() => {
+//   console.log('Database & tables synced without dropping existing data!')
+// })
 
 module.exports = {
   sequelize,

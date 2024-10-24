@@ -4,6 +4,7 @@ const dotenv = require('dotenv')
 const path = require('path')
 const appError = require('./utils/appError')
 const globalErrorHandler = require('./controllers/errorController')
+const { initializeApp } = require('./lunchScript')
 const userRoutes = require('./routes/userRoutes')
 const productRoutes = require('./routes/productRoutes')
 const categoryRoutes = require('./routes/categoryRoutes')
@@ -50,9 +51,19 @@ app.all('*', (req, res, next) => {
 })
 app.use(globalErrorHandler)
 const port = process.env.PORT || 3001
-const server = app.listen(port, () => {
+const server = app.listen(port, async () => {
   console.log(`server is running on port ${port}`)
+  try {
+    // Initialize data: pages, roles, and admin user
+    await initializeApp()
+    console.log('Initialization completed: Pages, Roles, and Admin setup!')
+  } catch (err) {
+    console.error('Error during initialization:', err)
+  }
 })
+console.log('one', process.env.USER_NAME)
+console.log('two', process.env.PASSWORD)
+
 process.on('unhandledRejection', (err) => {
   console.log('Unhandled Rejection , Shutting Down the Back-End server...💥')
   console.log(err.name, err.message)
