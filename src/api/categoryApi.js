@@ -5,7 +5,7 @@ export const fetchCategories = async (
   setShowErrorPopup,
 ) => {
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
 
     const response = await fetch('http://localhost:3001/api/categories', {
       headers: {
@@ -54,7 +54,7 @@ export const handleAddCategory = async (
       formData.append('image', newCategory.image) // Append the image file
       console.log('seeet')
     }
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
 
     const response = await fetch('http://localhost:3001/api/categories', {
       method: 'POST',
@@ -132,7 +132,7 @@ export const handleUpdate = async (
     if (updatedCategory.image) {
       formData.append('image', updatedCategory.image) // Append the category image if it exists
     }
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
 
     // Send the updated data to the backend
     const response = await fetch(
@@ -204,7 +204,7 @@ export const handleDeleteAll = async (
   setShowErrorPopup,
 ) => {
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/categories', {
       method: 'DELETE',
       headers: {
@@ -238,7 +238,7 @@ export const handleConfirmDelete = async (
 ) => {
   if (!selectedCategory) return // Ensure selectedCategory is set
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch(
       `http://localhost:3001/api/categories/${selectedCategory}`,
       {

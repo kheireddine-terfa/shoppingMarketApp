@@ -4,11 +4,11 @@ import RoleCard from './RoleCard'
 import { filteredRoles } from '../../utilities/roleUtils'
 import {
   handleAddSubmit,
-  fetchRoles,
   handleConfirmDelete,
   handleDeleteAll,
   handleSubmit,
 } from '../../api/roleApi'
+import { fetchAcions, fetchRoles } from '../../api/commonApi'
 import AddRoleModal from './AddRoleModal'
 import ConfirmModal from '../commonComponents/ConfirmModal'
 import UpdateRoleModal from './UpdateRoleModal'
@@ -24,12 +24,27 @@ const RolesContent = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [showErrorPopup, setShowErrorPopup] = useState(false)
+  const [pageActions, setActions] = useState([])
+  const [canAdd, setCanAdd] = useState(false)
+  const [canDelete, setCanDelete] = useState(false)
+  const [canUpdate, setCanUpdate] = useState(false)
 
   // Fetch roles from the backend
 
   useEffect(() => {
     fetchRoles(setRoles, setErrorMessage, setShowErrorPopup)
+    fetchAcions(setActions, setErrorMessage, setShowErrorPopup, 'roles')
   }, [])
+  useEffect(() => {
+    setCanAdd(pageActions.includes('add'))
+    setCanDelete(pageActions.includes('delete'))
+    setCanUpdate(pageActions.includes('update'))
+  }, [pageActions]) // Run this effect only when `actions` changes
+  const allowedActions = {
+    canAdd,
+    canDelete,
+    canUpdate,
+  }
   const handleDeleteClick = (role) => {
     setSelectedRole(role) // Ensure the correct role object is set
     setShowDeleteModal(true)
@@ -87,20 +102,24 @@ const RolesContent = () => {
                 </div>
               </div>
               <div className="relative flex flex-wrap justify-end items-center my-2 ml-auto">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(true)}
-                  className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
-                >
-                  Add New role
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmModal(true)} // Show the confirmation modal
-                  className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
-                >
-                  Delete All
-                </button>
+                {allowedActions.canAdd && (
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(true)}
+                    className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                  >
+                    Add New role
+                  </button>
+                )}
+                {allowedActions.canDelete && (
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmModal(true)} // Show the confirmation modal
+                    className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                  >
+                    Delete All
+                  </button>
+                )}
               </div>
             </div>
             <div className="flex flex-wrap">
@@ -111,6 +130,7 @@ const RolesContent = () => {
                   pages={roleData.pages}
                   onDelete={() => actions.onDelete(roleData.id)}
                   onUpdate={() => actions.onUpdate(roleData)}
+                  allowedActions={allowedActions}
                 />
               ))}
             </div>

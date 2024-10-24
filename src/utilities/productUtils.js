@@ -5,10 +5,8 @@ export const checkForAlert = (expirationDates) => {
   const expDate = new Date(expirationDates[0].date)
   const alertDate = new Date(expDate)
   alertDate.setDate(alertDate.getDate() - expirationDates[0].alert_interval)
-
-  return currentDate >= alertDate && currentDate < expDate
-    ? 'Near Expiration !'
-    : null
+  console.log(currentDate >= alertDate && currentDate < expDate ? true : false)
+  return currentDate >= alertDate && currentDate < expDate ? true : false
 }
 export const getInventoryState = (quantity, minQuantity) => {
   let inventoryState = ''

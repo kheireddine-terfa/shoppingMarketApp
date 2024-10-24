@@ -5,7 +5,7 @@ export const fetchSales = async (
   setShowErrorPopup,
 ) => {
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/product-sales', {
       headers: {
         Authorization: `Bearer ${token}`, // Send the token
@@ -42,7 +42,7 @@ export const fetchProducts = async (
 ) => {
   if (!selectedSale) return
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch(
       `http://localhost:3001/api/product-sales/${selectedSale.id}`,
       {
@@ -93,7 +93,7 @@ export const handleUpdate = async (
       paid_amount: updatedSale.paid_amount,
       remaining_amount: updatedSale.remaining_amount,
     }
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     // Send the updated data to the backend
     const response = await fetch(
       `http://localhost:3001/api/sales/${updatedSale.id}`,
@@ -168,7 +168,7 @@ export const handleDeleteAll = async (
   setShowErrorPopup,
 ) => {
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/sales', {
       method: 'DELETE',
       headers: {
@@ -202,7 +202,7 @@ export const handleConfirmDelete = async (
 ) => {
   if (!selectedSale) return // Ensure selectedSale is set
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch(
       `http://localhost:3001/api/sales/${selectedSale}`,
       {

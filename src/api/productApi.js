@@ -9,7 +9,7 @@ export const fetchProducts = async (
   setShowErrorPopup,
 ) => {
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/products', {
       headers: {
         Authorization: `Bearer ${token}`, // Send the token
@@ -56,7 +56,7 @@ export const fetchCategories = async (
   setShowErrorPopup,
 ) => {
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
 
     const response = await fetch('http://localhost:3001/api/categories', {
       headers: {
@@ -104,7 +104,7 @@ export const handleAddProduct = async (
     if (newProduct.image) {
       formData.append('image', newProduct.image) // Append the image file
     }
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/products', {
       method: 'POST',
       body: formData, // Send the FormData
@@ -162,7 +162,7 @@ export const handleDeleteAll = async (
   setShowErrorPopup,
 ) => {
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/products', {
       method: 'DELETE',
       headers: {
@@ -196,7 +196,7 @@ export const handleConfirmDelete = async (
 ) => {
   if (!selectedProduct) return // Ensure selectedProduct is set
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
 
     const response = await fetch(
       `http://localhost:3001/api/products/${selectedProduct}`,

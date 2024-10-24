@@ -17,8 +17,13 @@ const ProductUpdateModal = ({ product, onSubmit, onCancel }) => {
   useEffect(() => {
     // Fetch all categories when the component mounts
     const fetchCategories = async () => {
+      const token = sessionStorage.getItem('token')
       try {
-        const response = await fetch('http://localhost:3001/api/categories')
+        const response = await fetch('http://localhost:3001/api/categories', {
+          headers: {
+            Authorization: `Bearer ${token}`, // Send the token
+          },
+        })
         const data = await response.json()
         setCategories(data) // Assuming data is an array of categories
       } catch (error) {
@@ -67,11 +72,15 @@ const ProductUpdateModal = ({ product, onSubmit, onCancel }) => {
       updatedProduct.append('image', formData.image)
     }
     try {
+      const token = sessionStorage.getItem('token')
       const response = await fetch(
         `http://localhost:3001/api/products/${product.id}`,
         {
           method: 'PUT',
           body: updatedProduct,
+          headers: {
+            Authorization: `Bearer ${token}`, // Send the token
+          },
         },
       )
       if (response.ok) {

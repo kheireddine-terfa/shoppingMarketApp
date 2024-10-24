@@ -21,17 +21,26 @@ const deletePage = catchAsync(async (req, res, next) => {
 })
 const updatePage = catchAsync(async (req, res, next) => {
   const { id } = req.params
+  const { name, available_actions } = req.body // Destructure properties from req.body
+
   const page = await Page.findByPk(id)
   if (!page) {
-    return next(new AppError('page to update not found!', 404))
+    return next(new AppError('Page to update not found!', 404))
   }
-  page.name = req.body.name
-  const updatedPage = await page.save()
+
+  // Update the properties
+  if (name !== undefined) page.name = name
+  if (available_actions !== undefined)
+    page.available_actions = available_actions
+
+  const updatedPage = await page.save() // Save the updated page
+
   res.status(200).json({
     status: 'success',
     updatedPage,
   })
 })
+
 const getPages = catchAsync(async (req, res, next) => {
   const pages = await Page.findAll()
   res.status(200).json({

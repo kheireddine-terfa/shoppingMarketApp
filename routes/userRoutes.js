@@ -7,5 +7,9 @@ router.route('/login').post(authController.login)
 router
   .route('/users')
   .delete(userController.deleteAllUsers)
-  .get(userController.getAllUsers)
+  .get(authController.protect, userController.getAllUsers)
+router
+  .route('/users/:id')
+  .delete(userController.deleteUser)
+  .patch(userController.updateUser)
 module.exports = router

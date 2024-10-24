@@ -5,7 +5,7 @@ export const fetchSuppliers = async (
   setShowErrorPopup,
 ) => {
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/suppliers', {
       headers: {
         Authorization: `Bearer ${token}`, // Send the token
@@ -49,7 +49,7 @@ export const handleAddSupplier = async (
       address: newSupplier.address,
       phone_number: newSupplier.phone_number,
     }
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/suppliers', {
       method: 'POST',
       headers: {
@@ -124,7 +124,7 @@ export const handleUpdate = async (
       address: updatedSupplier.address,
       phone_number: updatedSupplier.phone_number,
     }
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     // Send the updated data to the backend
     const response = await fetch(
       `http://localhost:3001/api/suppliers/${updatedSupplier.id}`,
@@ -194,7 +194,7 @@ export const handleDeleteAll = async (
   setShowErrorPopup,
 ) => {
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/suppliers', {
       method: 'DELETE',
       headers: {
@@ -228,7 +228,7 @@ export const handleConfirmDelete = async (
 ) => {
   if (!selectedSupplier) return // Ensure selectedSupplier is set
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch(
       `http://localhost:3001/api/suppliers/${selectedSupplier}`,
       {

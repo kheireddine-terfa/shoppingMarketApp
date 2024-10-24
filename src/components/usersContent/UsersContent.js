@@ -2,93 +2,79 @@ import React, { useEffect, useState } from 'react'
 import Table from '../commonComponents/Table'
 import ErrorPopup from '../commonComponents/ErrorPopup'
 
-import ConfirmModal from '../commonComponents/ConfirmModal'
-import UpdateModal from '../commonComponents/UpdateModal'
-import DetailsModal from '../commonComponents/DetailsModal'
+import { filteredUsers, initialFormData } from '../../utilities/userUtils'
+import { InputsConfig, headerConfig } from '../../config/userConfig'
 import {
-  filteredSales,
-  initialFormData,
-  modalData,
-} from '../../utilities/saleUtils'
-import { InputsConfig, headerConfig } from '../../config/saleConfig'
-import {
-  fetchSales,
-  fetchProducts,
-  handleSubmit,
+  fetchUsers,
+  handleAddSubmit,
   handleDeleteAll,
   handleConfirmDelete,
-} from '../../api/saleApi'
-import { fetchAcions } from '../../api/commonApi'
-const OSalesContent = () => {
+  handleSubmit,
+} from '../../api/userApi'
+import { fetchAcions, fetchRoles } from '../../api/commonApi'
+import AddModal from '../commonComponents/AddModal'
+import ConfirmModal from '../commonComponents/ConfirmModal'
+import UpdateModal from '../commonComponents/UpdateModal'
+// check the controller :
+const UsersContent = () => {
   //----------- States:
-  const [sales, setSales] = useState([])
+  const [users, setUsers] = useState([])
+  const [roles, setRoles] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [showModal, setShowModal] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
-  const [selectedSale, setSelectedSale] = useState(null)
-  const [products, setProducts] = useState([])
+  const [selectedUser, setSelectedUser] = useState(null)
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [showDetailsModal, setShowDetailsModal] = useState(false)
-  const [isUpdate, setIsUpdate] = useState(false) // Flag to determine if the form is for update or add
   const [errorMessage, setErrorMessage] = useState('')
   const [showErrorPopup, setShowErrorPopup] = useState(false)
+  const [formData, setFormData] = useState(initialFormData)
+  const [isUpdate, setIsUpdate] = useState(false)
   const [pageActions, setActions] = useState([])
+  const [canAdd, setCanAdd] = useState(false)
   const [canDelete, setCanDelete] = useState(false)
   const [canUpdate, setCanUpdate] = useState(false)
 
-  const [formData, setFormData] = useState(initialFormData)
-
+  // Fetch users from the backend
   useEffect(() => {
-    fetchSales(setSales, setErrorMessage, setShowErrorPopup)
-    fetchAcions(setActions, setErrorMessage, setShowErrorPopup, 'sales')
+    fetchUsers(setUsers, setErrorMessage, setShowErrorPopup)
+    fetchRoles(setRoles, setErrorMessage, setShowErrorPopup)
+    fetchAcions(setActions, setErrorMessage, setShowErrorPopup, 'users')
   }, [])
   useEffect(() => {
+    setCanAdd(pageActions.includes('add'))
     setCanDelete(pageActions.includes('delete'))
     setCanUpdate(pageActions.includes('update'))
   }, [pageActions]) // Run this effect only when `actions` changes
   const allowedActions = {
+    canAdd,
     canDelete,
     canUpdate,
   }
-  useEffect(() => {
-    fetchProducts(selectedSale, setProducts, setErrorMessage, setShowErrorPopup)
-  }, [selectedSale])
-  const handleShowDetails = (sale) => {
-    setSelectedSale(sale)
-    setShowDetailsModal(true) // Show the details modal
-  }
-
-  const handleCloseDetails = () => {
-    setShowDetailsModal(false) // Close the details modal
-  }
-  const handleDeleteClick = (sale) => {
-    setSelectedSale(sale) // Ensure the correct sale object is set
+  const handleDeleteClick = (user) => {
+    setSelectedUser(user) // Ensure the correct user object is set
     setShowDeleteModal(true)
   }
-
-  const handleUpdateSale = (sale) => {
-    setSelectedSale(sale)
+  const handleUpdateUser = (user) => {
+    setSelectedUser(user)
     setFormData({
-      date: sale.date,
-      description: sale.description,
-      amount: sale.amount,
-      paid_amount: sale.paid_amount,
-      remaining_amount: sale.remaining_amount,
+      username: user.username,
+      password: user.password,
+      passwordConfirm: user.passwordConfirm,
+      role_id: user.role_id,
     })
     setShowUpdateModal(true)
-    setIsUpdate(true) // Set update flag to true
+    setIsUpdate(true)
   }
 
   const handleCancelUpdate = () => {
     setShowUpdateModal(false)
-    setSelectedSale(null)
-    setIsUpdate(false) // Reset the update flag
+    setSelectedUser(null)
+    setIsUpdate(false)
   }
-
   const actions = {
     onDelete: handleDeleteClick,
-    onUpdate: handleUpdateSale,
-    onShowDetails: handleShowDetails,
+    onUpdate: handleUpdateUser,
   }
   return (
     <main className="container mx-auto p-4 mt-[52px] flex flex-wrap mb-5">
@@ -98,13 +84,13 @@ const OSalesContent = () => {
             <div className="px-9 pt-5 flex justify-between items-stretch flex-wrap min-h-[70px] pb-0 bg-transparent">
               <h3 className="flex flex-col items-start justify-center m-2 ml-0 font-medium text-xl/tight text-dark">
                 <span className="mr-3 font-semibold text-dark">
-                  Tous Les sales
+                  Tous Les Utilisateurs
                 </span>
               </h3>
               <div className="relative flex items-center my-2 border rounded-lg h-[40px] ml-auto min-w-[50%]">
                 <input
                   type="text"
-                  placeholder="Search sales..."
+                  placeholder="Search users..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full h-full px-4 py-2 text-sm border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
@@ -127,6 +113,15 @@ const OSalesContent = () => {
                 </div>
               </div>
               <div className="relative flex flex-wrap justify-end items-center my-2 ml-auto">
+                {allowedActions.canAdd && (
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(true)}
+                    className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                  >
+                    Add New User
+                  </button>
+                )}
                 {allowedActions.canDelete && (
                   <button
                     type="button"
@@ -139,25 +134,43 @@ const OSalesContent = () => {
               </div>
             </div>
             <Table
-              data={filteredSales(sales, searchQuery)}
+              data={filteredUsers(users, searchQuery)}
               actions={actions}
               headerConfig={headerConfig}
-              tableTitle={'sales'}
+              tableTitle={'users'}
               allowedActions={allowedActions}
             />
           </div>
         </div>
       </div>
+      {showModal && (
+        <AddModal
+          onSubmit={(e) =>
+            handleAddSubmit(
+              e,
+              formData,
+              setUsers,
+              setShowModal,
+              setFormData,
+              setErrorMessage,
+              setShowErrorPopup,
+            )
+          }
+          onCancel={() => setShowModal(false)}
+          InputsConfig={InputsConfig(formData, setFormData, roles, isUpdate)}
+          title={'user'}
+        />
+      )}
       {showDeleteModal && (
         <ConfirmModal
-          title="Delete Sale"
-          message={`Are you sure you want to delete this sale?`}
+          title="Delete User"
+          message={`Are you sure you want to delete this user?`}
           onConfirm={() =>
             handleConfirmDelete(
-              selectedSale,
-              setSales,
-              sales,
-              setSelectedSale,
+              selectedUser,
+              setUsers,
+              users,
+              setSelectedUser,
               setShowDeleteModal,
               setErrorMessage,
               setShowErrorPopup,
@@ -168,10 +181,10 @@ const OSalesContent = () => {
       )}
       {showConfirmModal && (
         <ConfirmModal
-          message="Are you sure you want to delete all sales?"
+          message="Are you sure you want to delete all users?"
           onConfirm={() =>
             handleDeleteAll(
-              setSales,
+              setUsers,
               setShowConfirmModal,
               setErrorMessage,
               setShowErrorPopup,
@@ -180,38 +193,24 @@ const OSalesContent = () => {
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
-      {showUpdateModal && selectedSale && (
+      {showUpdateModal && selectedUser && (
         <UpdateModal
-          title="Sale"
-          InputsConfig={InputsConfig(formData, setFormData, isUpdate)}
+          title="user"
+          InputsConfig={InputsConfig(formData, setFormData, roles, isUpdate)}
           onSubmit={(e) =>
             handleSubmit(
               e,
               formData,
-              setSales,
+              setUsers,
               setShowUpdateModal,
-              setFormData,
-              selectedSale,
               setIsUpdate,
+              setFormData,
+              selectedUser,
               setErrorMessage,
               setShowErrorPopup,
             )
           }
           onCancel={handleCancelUpdate}
-        />
-      )}
-      {showDetailsModal && selectedSale && (
-        <DetailsModal
-          isOpen={showDetailsModal}
-          onClose={handleCloseDetails}
-          title={
-            selectedSale
-              ? `Sale : ${selectedSale.currentSale.id.toString().toUpperCase()}`
-              : ''
-          }
-          data={modalData(selectedSale)}
-          formatDate={(dateString) => new Date(dateString).toLocaleDateString()}
-          tableData={products}
         />
       )}
       {showErrorPopup && (
@@ -224,4 +223,4 @@ const OSalesContent = () => {
   )
 }
 
-export default OSalesContent
+export default UsersContent

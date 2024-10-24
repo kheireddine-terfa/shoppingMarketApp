@@ -1,4 +1,6 @@
 export const InputsConfig = (formData, setFormData, categories) => {
+  // Get current date in YYYY-MM-DD format
+  const currentDate = new Date().toISOString().split('T')[0]
   const handleImageChange = (e) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -110,6 +112,7 @@ export const InputsConfig = (formData, setFormData, categories) => {
     {
       label: 'Expiration Date',
       type: 'date',
+      min: currentDate, // Prevent selection of past dates
       value: formData.expirationDate,
       onChange: (e) =>
         setFormData((prevData) => ({

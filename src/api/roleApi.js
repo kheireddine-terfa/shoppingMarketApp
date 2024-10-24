@@ -1,36 +1,5 @@
 // import { initialFormData } from '../utilities/roleUtils'
-export const fetchRoles = async (
-  setRoles,
-  setErrorMessage,
-  setShowErrorPopup,
-) => {
-  try {
-    const token = localStorage.getItem('token')
-    const response = await fetch('http://localhost:3001/api/roles', {
-      headers: {
-        Authorization: `Bearer ${token}`, // Send the token
-      },
-    })
-    if (!response.ok) {
-      setErrorMessage('Failed to fetch roles , please try again later.')
-      setShowErrorPopup(true)
-      return
-    }
-    const data = await response.json()
-    setRoles(
-      data.map((role) => {
-        return {
-          id: role.roleId,
-          name: role.roleName,
-          pages: role.pages,
-        }
-      }),
-    )
-  } catch (error) {
-    console.error('Error fetching roles:', error)
-  }
-}
-
+import { fetchRoles } from './commonApi'
 export const handleAddSubmit = async (
   roleData,
   setErrorMessage,
@@ -39,7 +8,7 @@ export const handleAddSubmit = async (
   setShowModal,
 ) => {
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/roles', {
       method: 'POST',
       headers: {
@@ -77,7 +46,7 @@ export const handleConfirmDelete = async (
 ) => {
   if (!selectedRole) return // Ensure selectedRole is set
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch(
       `http://localhost:3001/api/roles/${selectedRole}`,
       {
@@ -111,7 +80,7 @@ export const handleDeleteAll = async (
   setShowErrorPopup,
 ) => {
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch('http://localhost:3001/api/roles', {
       method: 'DELETE',
       headers: {
@@ -140,7 +109,7 @@ export const handleSubmit = async (
   setShowErrorPopup,
 ) => {
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const response = await fetch(
       `http://localhost:3001/api/roles/${roleData.id}`,
       {

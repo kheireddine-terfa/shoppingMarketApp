@@ -158,6 +158,35 @@ const assignRoleToUser = catchAsync(async (req, res, next) => {
     message: `user : ${user.username} assigned to role : ${role.name} successfully `,
   })
 })
+const getRolePages = catchAsync(async (req, res, next) => {
+  const id = req.params.id
+  const user = await User.findOne({ where: { role_id: id } })
+  if (!user) {
+    return next(
+      new AppError(
+        'no user attched to this role !you must be attached to role',
+        401,
+      ),
+    )
+  }
+  const permissions = await Role.findOne({
+    where: { id },
+    include: {
+      model: Page,
+      as: 'pages', // This should match the alias used in the association
+      through: {
+        model: RolePage,
+        as: 'actions', // Specify the through model to access actions
+        attributes: ['actions'], // Include the actions field
+      },
+      attributes: ['id', 'name'], // Only select the fields you need
+    },
+  })
+  res.status(200).json({
+    status: 'success',
+    pages: permissions.pages,
+  })
+})
 module.exports = {
   createRole,
   deleteRole,
@@ -166,4 +195,5 @@ module.exports = {
   deleteAllRoles,
   assignRoleToUser,
   getUsersAndRoles,
+  getRolePages,
 }

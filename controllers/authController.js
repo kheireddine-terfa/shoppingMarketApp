@@ -1,16 +1,16 @@
-const { User } = require('../models')
+const { User, Role } = require('../models')
 const catchAsync = require('../utils/catchAsync')
 const AppError = require('../utils/appError')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
-console.log(process.env.JWT_SECRET)
+const { promisify } = require('util')
 //-------------------------------------------
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET)
 }
 //-------------------------------------------
 exports.singUp = catchAsync(async (req, res, next) => {
-  const { password, username, passwordConfirm } = req.body
+  const { password, username, passwordConfirm, role_id } = req.body
   let newUser, token
   //1------- check if the fields are provided
   if (!(password && username && passwordConfirm)) {
@@ -21,12 +21,17 @@ exports.singUp = catchAsync(async (req, res, next) => {
       ),
     )
   }
-  //1-2 ---- create the user :
-  newUser = await User.create({ username, password, passwordConfirm })
-  // 2------- check if the user created
+  //2 : check if the role exist :
+  const role = await Role.findByPk(role_id)
+  if (!role) {
+    return next(new AppError('Role not Found !', 404))
+  }
+  //3 ---- create the user :
+  newUser = await User.create({ username, password, passwordConfirm, role_id })
+  // 4------- check if the user created
   if (newUser) {
     console.log('new user : ', newUser)
-    //3--------- sign the token
+    //5--------- sign the token
     const id = newUser.username
     token = signToken(id)
   }
@@ -62,24 +67,15 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!isMatch) {
     return next(new AppError('Invalid username or password', 401))
   }
+
   //4 -------- Generate JWT token
   const token = signToken(user.username)
-  //5 --------- store the token in user cookies :
-  // const cookieOptions = {
-  //   expires: new Date(
-  //     Date.now() + process.env.COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
-  //   ),
-  //   httpOnly: true,
-  // }
-  // if (process.env.NODE_ENV === 'production') {
-  //   cookieOptions.secure = true
-  // }
-  // res.cookie('token', token, cookieOptions)
-  //6--------- Send response with token
+  //5--------- Send response with token
   res.status(200).json({
     status: 'success',
     message: 'Login successful.',
     token,
+    roleId: user.role_id,
   })
 })
 //-------------------------------------------
@@ -100,5 +96,16 @@ exports.protect = catchAsync(async (req, res, next) => {
       new AppError('You are not logged in, please login to get access', 401),
     )
   }
+  //3- verification the token
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
+  //4 check if the user still exist :
+  const user = await User.findOne({
+    where: { username: decoded.id },
+    attributes: { exclude: ['password', 'passwordConfirm'] },
+  })
+  if (!user) {
+    return next(new AppError('user not found! please login to get access', 401))
+  }
+  req.user = user
   next()
 })

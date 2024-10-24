@@ -31,6 +31,7 @@ app.use(cors())
 app.use('/images', express.static(path.join(__dirname, 'public/images')))
 
 app.use('/api', userRoutes)
+app.use('/api/pages', pageRoutes)
 app.use(authController.protect)
 app.use('/api/products', productRoutes)
 app.use('/api/categories', categoryRoutes)
@@ -41,7 +42,6 @@ app.use('/api/product-sales', productSaleRoutes)
 app.use('/api/sales', saleRoutes)
 app.use('/api/suppliers', supplierRoutes)
 app.use('/api/supplies', supplyRoutes)
-app.use('/api/pages', pageRoutes)
 app.use('/api/roles', roleRoutes)
 
 // handling unhandled Routes
