@@ -29,6 +29,8 @@ const DetailsModal = ({
 
   if (!isOpen) return null
 
+  console.log(currentTableData)
+
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg w-2/4">
@@ -96,7 +98,7 @@ const DetailsModal = ({
                     className={index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'}
                   >
                     <td className="py-2 px-4 border-b border-gray-200">
-                      {item.product || item.productName}
+                      {item.product || item.name}
                     </td>
                     <td className="py-2 px-4 border-b border-gray-200">
                       {item.quantity || `${item.productPrice} DA`}

@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import FormInput from '../../commonComponents/FormInput';
+import MyAlert from '../../commonComponents/Alert';
+
 
 const AddModalWithProducts = ({ onSubmit, onCancel, InputsConfig, title, theme }) => {
   const [productInputs, setProductInputs] = useState([
-    { productId: '', quantity: '', purchasePrice: '', searchQuery: '' },
+    { productId: '', quantity: '', purchasePrice: '', searchQuery: '', unit: '' },
   ]);
-
   const [products, setProducts] = useState([]);
+  const [showAlert, setShowAlert] = useState(true); // State to control alert visibility
+
   // Fetch Products
   const fetchProducts = async () => {
     try {
@@ -15,6 +18,7 @@ const AddModalWithProducts = ({ onSubmit, onCancel, InputsConfig, title, theme }
       const productOptions = data.map((product) => ({
         value: product.id,
         label: product.name,
+        balanced: product.balanced_product,
       }));
       setProducts(productOptions);
     } catch (error) {
@@ -29,13 +33,17 @@ const AddModalWithProducts = ({ onSubmit, onCancel, InputsConfig, title, theme }
   const addProductInput = () => {
     setProductInputs([
       ...productInputs,
-      { productId: '', quantity: '', purchasePrice: '', searchQuery: '' },
+      { productId: '', quantity: '', purchasePrice: '', searchQuery: '', unit: '' },
     ]);
   };
 
   const handleProductChange = (index, field, value) => {
     const updatedProducts = [...productInputs];
     updatedProducts[index][field] = value;
+    if (field === 'productId') {
+      const selectedProduct = products.find((product) => product.value === parseInt(value));
+      updatedProducts[index].unit = selectedProduct?.balanced ? 'grams' : 'units';
+    }
     setProductInputs(updatedProducts);
   };
 
@@ -67,14 +75,14 @@ const AddModalWithProducts = ({ onSubmit, onCancel, InputsConfig, title, theme }
 
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center ${theme === 'dark' ? 'bg-gray-900' : 'bg-black'} bg-opacity-50 overflow-y-auto`}>
-      <div className={`bg-white p-6 rounded-lg shadow-lg w-2/3 max-h-screen overflow-y-auto`}>
+      <div className={`bg-white p-6 rounded-lg shadow-lg w-2/4 max-h-screen overflow-y-auto`}>
         <h2 className="text-xl font-semibold mb-4">Add New {title}</h2>
+
         <form onSubmit={handleAddToSupply}>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              {firstColumnInputs.map((inputConfig, index) => (
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+            {firstColumnInputs.map((inputConfig, index) => (
+              <div key={`first-${index}`} className="col-span-1">
                 <FormInput
-                  key={index}
                   label={inputConfig.label}
                   type={inputConfig.type || 'text'}
                   value={inputConfig.value}
@@ -85,14 +93,14 @@ const AddModalWithProducts = ({ onSubmit, onCancel, InputsConfig, title, theme }
                   required={inputConfig.required}
                   min={inputConfig.min}
                   accept={inputConfig.accept}
+                  maxLength={inputConfig.maxLength}
                 />
-              ))}
-            </div>
-            {secondColumnInputs.length > 0 && (
-              <div className="border-l border-gray-300 pl-6">
-                {secondColumnInputs.map((inputConfig, index) => (
+              </div>
+            ))}
+            {secondColumnInputs.length > 0 &&
+              secondColumnInputs.map((inputConfig, index) => (
+                <div key={`second-${index}`} className="col-span-1">
                   <FormInput
-                    key={index}
                     label={inputConfig.label}
                     type={inputConfig.type || 'text'}
                     value={inputConfig.value}
@@ -103,16 +111,19 @@ const AddModalWithProducts = ({ onSubmit, onCancel, InputsConfig, title, theme }
                     required={inputConfig.required}
                     min={inputConfig.min}
                     accept={inputConfig.accept}
+                    maxLength={inputConfig.maxLength}
                   />
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
           </div>
+
+          <MyAlert></MyAlert>
+
           {/* Dynamic Product Inputs */}
           <div className="mt-6">
             <h3 className="text-lg font-semibold mb-2">Products</h3>
             {productInputs.map((product, index) => (
-              <div key={index} className="space-y-2 mb-4">
+              <div key={index} className="space-y-2 mb-4 border border-blue-500 p-4 rounded-lg">
                 {/* Search Bar */}
                 <input
                   type="text"
@@ -141,28 +152,40 @@ const AddModalWithProducts = ({ onSubmit, onCancel, InputsConfig, title, theme }
                   ))}
                 </select>
 
-                {/* Quantity and Purchase Price Inputs */}
-                <div className="flex space-x-4">
-                  <input
-                    type="number"
-                    placeholder="Quantity"
-                    value={product.quantity}
-                    onChange={(e) =>
-                      handleProductChange(index, 'quantity', e.target.value)
-                    }
-                    className="border rounded p-2 flex-1"
-                    required
-                  />
-                  <input
-                    type="number"
-                    placeholder="Purchase Price"
-                    value={product.purchasePrice}
-                    onChange={(e) =>
-                      handleProductChange(index, 'purchasePrice', e.target.value)
-                    }
-                    className="border rounded p-2 flex-1"
-                    required
-                  />
+                {/* Quantity and Unit */}
+                <div className="flex space-x-4 items-center w-full">
+                  <div className="flex items-center space-x-2 w-1/2">
+                    <label className="text-sm font-medium">Quantity {product.unit}</label>
+                    <input
+                      type="number"
+                      placeholder="Quantity"
+                      value={product.quantity}
+                      onChange={(e) =>
+                        handleProductChange(index, 'quantity', e.target.value)
+                      }
+                      className="border rounded p-2 w-full"
+                      min={0}
+                      onWheel={() => document.activeElement.blur()}
+                      required
+                    />
+                    <span className="ml-2">{product.unit || ''}</span>
+                  </div>
+
+                  <div className="flex items-center space-x-2 w-1/2">
+                    <label className="text-sm font-medium">Purchase Price:</label>
+                    <input
+                      type="number"
+                      placeholder="Purchase Price"
+                      value={product.purchasePrice}
+                      onChange={(e) =>
+                        handleProductChange(index, 'purchasePrice', e.target.value)
+                      }
+                      className="border rounded p-2 w-full"
+                      min={0}
+                      onWheel={() => document.activeElement.blur()}
+                      required
+                    />
+                  </div>
                 </div>
 
                 {productInputs.length > 1 && (

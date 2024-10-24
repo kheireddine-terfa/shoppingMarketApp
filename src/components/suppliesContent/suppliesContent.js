@@ -47,8 +47,6 @@ const SuppliesContent = () => {
     try {
       const response = await fetch('http://localhost:3001/api/supplies');
       const data = await response.json();
-      console.log('data', data);
-
       // Map the data as before
       const mappedSupplies = data.map((supply) => {
         return {
@@ -129,25 +127,16 @@ const SuppliesContent = () => {
   // Handle add supply
   const handleAddSupply = async (newSupply,newSupplyProducts) => {
     try {
-      const formData = {
-        date: newSupply.date,
-        amount: newSupply.amount,
-        description: newSupply.description,
-        paid_amount: newSupply.paid_amount,
-        remaining_amount: newSupply.remaining_amount,
-        supplierId : newSupply.supplierId
-      }
-      const response = await fetch('http://localhost:3001/api/supplies', {
+       const response = await fetch('http://localhost:3001/api/supplies', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData), // Send the FormData
+        body: JSON.stringify(newSupply), // Send the FormData
       })
 
       if (response.ok) {
         const supplyProducrsPromises = newSupplyProducts.map((nsp) => {
-          console.log(nsp)
           return axios.post('http://localhost:3001/api/product-supplies', {
             quantity: parseInt(nsp.quantity),
             purchase_price : parseInt(nsp.purchase_price),
@@ -155,8 +144,6 @@ const SuppliesContent = () => {
             supplyId: parseInt(nsp.supplyId),
           });
         });
-        const supplyProducrsResponse = await Promise.all(supplyProducrsPromises);
-
         const addedSupply = await response.json()
         // Update the state with the new supply including its
         const updatedSupply = {
@@ -181,7 +168,7 @@ const SuppliesContent = () => {
       console.error('Error adding supply:', error)
     }
   }
-  const handleUpdate = async (updatedSupply) => {
+  const handleUpdate = async (updatedSupply,UpdatedSupplyProducts) => {
     try {
       // Create a FormData object to handle the file upload and other data
       const formData = {
@@ -190,7 +177,10 @@ const SuppliesContent = () => {
         description: updatedSupply.description,
         paid_amount: updatedSupply.paid_amount,
         remaining_amount: updatedSupply.remaining_amount,
+        supplierId : updatedSupply.supplierId
       }
+
+      console.log(formData)
       // Send the updated data to the backend
       const response = await fetch(
         `http://localhost:3001/api/supplies/${updatedSupply.id}`,
@@ -206,23 +196,30 @@ const SuppliesContent = () => {
       if (!response.ok) {
         throw new Error('Failed to update the supply')
       } else {
+        const promises = UpdatedSupplyProducts.map((usp) => {
+          return {
+            quantity: parseInt(usp.quantity),
+            purchase_price: parseInt(usp.purchase_price),
+            productId: parseInt(usp.productId),
+            supplyId: parseInt(usp.supplyId),
+            newProductId: parseInt(usp.newProductId),
+          };
+        });
+        
+        // Send the entire array in one request
+        await axios.put(`http://localhost:3001/api/product-supplies/`, promises);
+        
         fetchSupplies()
         setShowUpdateModal(false)
         setFormData(initialFormData)
       }
-
-      const result = await response.json()
-      console.log('supply updated successfully:', result)
-
-      // Add any further logic if needed, such as updating the UI or notifying the user
     } catch (error) {
       console.error('Error updating supply:', error)
       // Handle the error, e.g., show an error message to the user
     }
   }
-  const handleSubmit = (event) => {
-    event.preventDefault()
 
+  const handleUpdateSubmit = (productInputs) => {
     const updatedSupply = {
       id: selectedSupply.id, // The ID of the supply being updated
       date: formData.date,
@@ -230,13 +227,23 @@ const SuppliesContent = () => {
       description: formData.description,
       paid_amount: formData.paid_amount,
       remaining_amount: formData.remaining_amount,
+      supplierId : formData.supplierId
     }
-
-    handleUpdate(updatedSupply)
+    const UpdatedSupplyProducts = productInputs.map((product) => (
+      {
+        supplyId :parseInt(selectedSupply.id),
+        productId : parseInt(product.productId),
+        purchase_price : parseInt(product.purchasePrice),
+        quantity : parseInt(product.quantity),
+        newProductId : parseInt(product.newProductId)
+      }))
+      console.log(UpdatedSupplyProducts)
+    handleUpdate(updatedSupply,UpdatedSupplyProducts)
   }
-  const handleUpdateSupply = (supply) => {
+
+  const handleUpdateSupply = async (supply) => {
+    console.log(supply)
     setSelectedSupply(supply)
-    console.log('supply :', supply)
     setFormData({
       date: supply.date,
       amount: supply.amount,
@@ -244,7 +251,14 @@ const SuppliesContent = () => {
       paid_amount: supply.paid_amount,
       remaining_amount: supply.remaining_amount,
       supplierId : supply.supplierId
-    })
+    })  
+    try {
+      const response = await fetch(`http://localhost:3001/api/supplies/${supply.id}/supply`)
+      const data = await response.json()
+      setSelectedSupplyProducts(data)
+    } catch (error) {
+      console.error('Error fetching supply products:', error)
+    }
     setShowUpdateModal(true)
   }
 
@@ -269,17 +283,16 @@ const SuppliesContent = () => {
       const data = await response.json()
       setSelectedSupplier(data.name)
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error('Error fetching supplier:', error)
     }
-
     try {
       const response = await fetch(`http://localhost:3001/api/supplies/${supply.id}/supply`)
       const data = await response.json()
+      console.log('Fetched supply products:', data)
       setSelectedSupplyProducts(data)
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error('Error fetching supply products:', error)
     }
-
     setShowDetailsModal(true) // Show the details modal
     setSelectedSupply(supply)
   }
@@ -287,51 +300,49 @@ const SuppliesContent = () => {
   const handleCloseDetails = () => {
     setShowDetailsModal(false) // Close the details modal
   }
-
-  console.log('filteredSupplies', filteredSupplies)
   const actions = {
     onDelete: handleDeleteClick,
     onUpdate: handleUpdateSupply,
     onShowDetails: handleShowDetails,
   }
+  
   const handleAddSubmit = (productInputs) => {
-    console.log('form data', formData)
-    console.log(productInputs)
+    const currentDate = new Date(); // This creates a new Date object with the current date and time.
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed, so add 1.
+    const year = currentDate.getFullYear();
+  
+    // Format the date as "yyyy-mm-dd"
+    const formattedDate = `${year}-${month}-${day}`;
+  
     const newSupply = {
-      date: formData.date,
+      date: formattedDate,
       amount: formData.amount,
       description: formData.description,
       paid_amount: formData.paid_amount,
       remaining_amount: formData.remaining_amount,
       supplierId: formData.supplierId,
-    }
-    const newSupplyProducts = productInputs.map((nps) => (
-      {
-        supplyId : lastSupplyId + 1,
-        productId : nps.productId,
-        purchase_price : nps.purchasePrice,
-        quantity : nps.quantity
-      }
-    ))
-    handleAddSupply(newSupply,newSupplyProducts)
-  }
+    };
+  
+    const newSupplyProducts = productInputs.map((nps) => ({
+      supplyId: lastSupplyId + 1,
+      productId: nps.productId,
+      purchase_price: nps.purchasePrice,
+      quantity: nps.quantity,
+    }));
+  
+    handleAddSupply(newSupply, newSupplyProducts);
+  };
+
+  console.log(suppliers)
+  console.log(formData)
+
   const InputsConfig = [
     {
-      label: 'Supply Date',
-      type: 'date',
-      value: formData.date,
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          date: e.target.value,
-        })),
-      required: true,
-    },
-    {
+      type : 'number',
       label: 'Supply Amount',
       value: formData.amount,
-      type: 'number',
-      min: 1,
+      min: 0,
       onChange: (e) =>
         setFormData((prevData) => ({
           ...prevData,
@@ -347,12 +358,13 @@ const SuppliesContent = () => {
           ...prevData,
           description: e.target.value,
         })),
-      required: true,
+      required: false,
+      maxLength : "30"
     },
     {
+      type : 'number',
       label: 'Paid Amount',
-      type: 'number',
-      min: 1,
+      min: 0,
       value: formData.paid_amount,
       onChange: (e) =>
         setFormData((prevData) => ({
@@ -362,9 +374,9 @@ const SuppliesContent = () => {
       required: true,
     },
     {
+      type : 'number',
       label: 'Remaining Amount',
-      type: 'number',
-      min: 1,
+      min: 0,
       value: formData.remaining_amount,
       onChange: (e) =>
         setFormData((prevData) => ({
@@ -384,7 +396,8 @@ const SuppliesContent = () => {
         })),
       options: suppliers,
       required: true,
-    },
+      name: suppliers.find((supplier) => supplier.id === formData.supplierId)?.name || '',
+    }
     
   ]
   const headerConfig = [
@@ -544,10 +557,11 @@ const SuppliesContent = () => {
       )}
       {showUpdateModal && selectedSupply && (
         <UpdateModal
-          title="Supply"
+          title="Update Supply"
           InputsConfig={InputsConfig}
-          onSubmit={handleSubmit}
+          onSubmit={handleUpdateSubmit}
           onCancel={handleCancelUpdate}
+          supplyId={selectedSupply.id}
         />
       )}
         {showDetailsModal && selectedSupply && (
@@ -557,6 +571,7 @@ const SuppliesContent = () => {
           data={modalData}
           formatDate={(dateString) => new Date(dateString).toLocaleDateString()}
           tableData={selectedSupplyProducts}
+          title="Supplies"
         />
       )}
     </main>
