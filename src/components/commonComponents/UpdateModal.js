@@ -3,7 +3,7 @@ import FormInput from './FormInput';
 import MyAlert from './Alert';
 const UpdateModal = ({ title, InputsConfig, onSubmit, onCancel, supplyId }) => {
   const [productInputs, setProductInputs] = useState([
-    { productName: '', productId: '', newProductId: '', quantity: '', purchasePrice: '', searchQuery: '', unit : ''},
+    { productName: '', productId: '', newProductId: '', quantity: '', purchasePrice: '', searchQuery: '', unit : '',expirationDate :'',alert_interval:'' },
   ]);
 
   const [products, setProducts] = useState([]);
@@ -24,37 +24,67 @@ const UpdateModal = ({ title, InputsConfig, onSubmit, onCancel, supplyId }) => {
     }
   };
 
-  // Fetch Supply Products
-  const fetchSupplyProducts = async () => {
-    try {
-      const response = await fetch(`http://localhost:3001/api/supplies/${supplyId}/supply`);
-      const data = await response.json();
+// Helper function to format the date as "yyyy-mm-dd"
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+  const year = date.getFullYear();
+  return `${year}-${month}-${day}`; // Format as "yyyy-mm-dd"
+};
 
-      const fetchedProductInputs = data.map((item) => ({
+
+// Fetch Supply Products
+const fetchSupplyProducts = async () => {
+  try {
+    // Fetch supply products
+    const response = await fetch(`http://localhost:3001/api/supplies/${supplyId}/supply`);
+    const productData = await response.json();
+
+    // Fetch expiration dates
+    const expirationResponse = await fetch(`http://localhost:3001/api/expiration-dates/supply/${supplyId}`);
+    const expirationData = await expirationResponse.json();
+
+    console.log(expirationData)
+
+    // Join expiration dates with product data based on productId
+    const fetchedProductInputs = productData.map((item) => {
+      const expiration = expirationData.find(exp => exp.productId === item.productId) || {};
+
+      // Format the expiration date as "jj-mm-aaaa"
+      const formattedExpirationDate = expiration.date ? formatDate(expiration.date) : '';
+
+      return {
         productName: item.name,
         productId: item.productId || '',
         newProductId: '', // Initialize newProductId as empty
         quantity: item.quantity || '',
         purchasePrice: item.purchase_price || '',
         searchQuery: '',
-        balancedProduct : false
-      }));
-      
-      setProductInputs(fetchedProductInputs);
-    } catch (error) {
-      console.error('Error fetching supply products:', error);
-    }
-  };
+        balancedProduct: false,
+        expirationDate: formattedExpirationDate, // Add formatted expiration date
+        alert_interval: expiration.alert_interval || '', // Add alert interval if available
+      };
+    });
 
-  useEffect(() => {
-    fetchSupplyProducts();
-    fetchProducts();
-  }, []);
+    // Set the combined data
+    setProductInputs(fetchedProductInputs);
+  } catch (error) {
+    console.error('Error fetching supply products:', error);
+  }
+};
+
+useEffect(() => {
+  fetchSupplyProducts();
+  fetchProducts(); // Assuming fetchProducts is used for a different purpose
+}, []);
+
+  console.log(productInputs)
 
   const addProductInput = () => {
     setProductInputs([
       ...productInputs,
-      { productName: '', productId: '', newProductId: '', quantity: '', purchasePrice: '', searchQuery: '' },
+      { productName: '', productId: '', newProductId: '', quantity: '', purchasePrice: '', searchQuery: '',expirationDate :'',alert_interval:''  },
     ]);
   };
 
@@ -75,8 +105,37 @@ const UpdateModal = ({ title, InputsConfig, onSubmit, onCancel, supplyId }) => {
           updatedProducts[index].unit = "grams";
         }
       }
+          // Handle expiration date validation
+    if (field === 'expirationDate') {
+      const today = getTodayDate();
+      if (value < today) {
+        updatedProducts[index].expirationDate = today; // Reset to today's date if the entered date is in the past
+      }
+    }
     }
   
+    setProductInputs(updatedProducts);
+  };
+
+  const getTodayDate = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+
+  const handleCheckboxChange = (index) => {
+    const updatedProducts = [...productInputs];
+    updatedProducts[index].addExpirationDate = !updatedProducts[index].addExpirationDate;
+    
+    // Clear the expiration date and alert interval if the checkbox is unchecked
+    if (!updatedProducts[index].addExpirationDate) {
+      updatedProducts[index].expirationDate = '';
+      updatedProducts[index].alert_interval = '';
+    }
+    
     setProductInputs(updatedProducts);
   };
 
@@ -195,39 +254,90 @@ const UpdateModal = ({ title, InputsConfig, onSubmit, onCancel, supplyId }) => {
                     ))}
                   </select>   
 
-                  {/* Quantity and Purchase Price Inputs */}
-                <div className="flex space-x-4 items-center w-full">
-                  <div className="flex items-center space-x-2 w-1/2">
-                  <label className="text-sm font-medium">Quantity {product.unit}</label>
-                    <input
-                    type='number'
-                    placeholder="Quantity"
-                    value={product.quantity}
-                     onChange={(e) =>
-                    handleProductChange(index, 'quantity', e.target.value)
-                   }
-                  className="border rounded p-2 w-full"
-                  min={0}
-                  onWheel={() => document.activeElement.blur()}
-                  required
-                />
-              </div>
-                <div className="flex items-center space-x-2 w-1/2">
-                 <label className="text-sm font-medium">Purchase Price:</label>
-                 <input
-                 type='number'
-                 placeholder="Purchase Price"
-                 value={product.purchasePrice}
-                 onChange={(e) =>
-                 handleProductChange(index, 'purchasePrice', e.target.value)
-                 }
-                className="border rounded p-2 w-full"
-                min={0}
-                onWheel={() => document.activeElement.blur()}
-                 required
-                />
-              </div>
-            </div>
+                  <div className="flex flex-col space-y-4 w-full">
+                  {/* First Row: Quantity and Purchase Price */}
+                  <div className="flex space-x-4 w-full">
+                    <div className="flex items-center space-x-2 w-1/2">
+                      <label className="text-sm font-medium">Quantity {product.unit}</label>
+                      <input
+                        type="number"
+                        placeholder="Quantity"
+                        value={product.quantity}
+                        onChange={(e) =>
+                          handleProductChange(index, 'quantity', e.target.value)
+                        }
+                        className="border rounded p-2 w-full"
+                        min={0}
+                        onWheel={() => document.activeElement.blur()}
+                        required
+                      />
+                      <span className="ml-2">{product.unit || ''}</span>
+                    </div>
+
+                    <div className="flex items-center space-x-2 w-1/2">
+                      <label className="text-sm font-medium">Purchase Price:</label>
+                      <input
+                        type="number"
+                        placeholder="Purchase Price"
+                        value={product.purchasePrice}
+                        onChange={(e) =>
+                          handleProductChange(index, 'purchasePrice', e.target.value)
+                        }
+                        className="border rounded p-2 w-full"
+                        min={0}
+                        onWheel={() => document.activeElement.blur()}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Checkbox for Adding Expiration Date */}
+                  <div className="mt-2">
+                    <label className="inline-flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={product.addExpirationDate}
+                        onChange={() => handleCheckboxChange(index)}
+                        className="form-checkbox"
+                      />
+                      <span className="ml-2">Add an expiration date?</span>
+                    </label>
+                  </div>
+
+                  {/* Second Row: Expiration Date and Alert Interval (conditionally rendered) */}
+                  {product.addExpirationDate && (
+                    <div className="flex space-x-4 w-full mt-2">
+                      <div className="flex items-center space-x-2 w-1/2">
+                        <label className="text-sm font-medium">Exp date:</label>
+                        <input
+                          type="date"
+                          placeholder="Exp date"
+                          value={product.expirationDate}
+                          onChange={(e) =>
+                            handleProductChange(index, 'expirationDate', e.target.value)
+                          }
+                          className="border rounded p-2 w-full"
+                        />
+                      </div>
+
+                      <div className="flex items-center space-x-2 w-1/2">
+                        <label className="text-sm font-medium">Alert interval</label>
+                        <input
+                          type="number"
+                          placeholder="Alert interval"
+                          value={product.alert_interval}
+                          onChange={(e) =>
+                            handleProductChange(index, 'alert_interval', e.target.value)
+                          }
+                          className="border rounded p-2 w-full"
+                          min={0}
+                          onWheel={() => document.activeElement.blur()}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+                  
                   {productInputs.length > 1 && (
                     <button
                       type="button"

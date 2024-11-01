@@ -136,12 +136,15 @@ const SuppliesContent = () => {
       })
 
       if (response.ok) {
+
         const supplyProducrsPromises = newSupplyProducts.map((nsp) => {
           return axios.post('http://localhost:3001/api/product-supplies', {
             quantity: parseInt(nsp.quantity),
             purchase_price : parseInt(nsp.purchase_price),
             productId: parseInt(nsp.productId),
             supplyId: parseInt(nsp.supplyId),
+            expiration_date: nsp.expiration_date,
+            alert_interval:parseInt(nsp.alert_interval)
           });
         });
         const addedSupply = await response.json()
@@ -168,7 +171,7 @@ const SuppliesContent = () => {
       console.error('Error adding supply:', error)
     }
   }
-  const handleUpdate = async (updatedSupply,UpdatedSupplyProducts) => {
+  const handleUpdate = async (updatedSupply,UpdatedSupplyProducts,updatedexpirationDates) => {
     try {
       // Create a FormData object to handle the file upload and other data
       const formData = {
@@ -180,7 +183,6 @@ const SuppliesContent = () => {
         supplierId : updatedSupply.supplierId
       }
 
-      console.log(formData)
       // Send the updated data to the backend
       const response = await fetch(
         `http://localhost:3001/api/supplies/${updatedSupply.id}`,
@@ -203,11 +205,24 @@ const SuppliesContent = () => {
             productId: parseInt(usp.productId),
             supplyId: parseInt(usp.supplyId),
             newProductId: parseInt(usp.newProductId),
+            expiration_date : usp.expirationDate,
+            alert_interval : parseInt(usp.alert_interval)
           };
         });
-        
         // Send the entire array in one request
         await axios.put(`http://localhost:3001/api/product-supplies/`, promises);
+
+        const expDatesprodmises = updatedexpirationDates.map((ued) => {
+          return{
+            date : ued.expiration_date,
+            alert_interval : parseInt(ued.alert_interval),
+            productId : parseInt(ued.productId),
+            supplyId : parseInt(ued.supplyId),
+            newProductId:parseInt(ued.newProductId),
+          }
+        })
+
+        await axios.put(`http://localhost:3001/api/expiration-dates`,expDatesprodmises)
         
         fetchSupplies()
         setShowUpdateModal(false)
@@ -229,20 +244,30 @@ const SuppliesContent = () => {
       remaining_amount: formData.remaining_amount,
       supplierId : formData.supplierId
     }
-    const UpdatedSupplyProducts = productInputs.map((product) => (
-      {
+
+    const UpdatedSupplyProducts = productInputs.map((product) => {
+      return{
         supplyId :parseInt(selectedSupply.id),
         productId : parseInt(product.productId),
         purchase_price : parseInt(product.purchasePrice),
         quantity : parseInt(product.quantity),
-        newProductId : parseInt(product.newProductId)
-      }))
-      console.log(UpdatedSupplyProducts)
-    handleUpdate(updatedSupply,UpdatedSupplyProducts)
+        newProductId : parseInt(product.newProductId),
+      }})
+
+      const updatedexpirationDates = productInputs.map((product) => {
+        const [expYear, expMonth, expDay] = product.expirationDate.split('-'); // Split the date string
+        const formattedExpirationDate = `${expDay}/${expMonth}/${expYear}`; // Rearrange to "DD/MM/YYYY"
+        return{
+          supplyId :parseInt(selectedSupply.id),
+          productId : parseInt(product.productId),
+          expiration_date: formattedExpirationDate, // Use the formatted expiration date
+          alert_interval: parseInt(product.alert_interval),
+          newProdcutId : parseInt(product.newProductId),
+        }})
+    handleUpdate(updatedSupply,UpdatedSupplyProducts,updatedexpirationDates)
   }
 
   const handleUpdateSupply = async (supply) => {
-    console.log(supply)
     setSelectedSupply(supply)
     setFormData({
       date: supply.date,
@@ -288,7 +313,6 @@ const SuppliesContent = () => {
     try {
       const response = await fetch(`http://localhost:3001/api/supplies/${supply.id}/supply`)
       const data = await response.json()
-      console.log('Fetched supply products:', data)
       setSelectedSupplyProducts(data)
     } catch (error) {
       console.error('Error fetching supply products:', error)
@@ -307,14 +331,15 @@ const SuppliesContent = () => {
   }
   
   const handleAddSubmit = (productInputs) => {
+
     const currentDate = new Date(); // This creates a new Date object with the current date and time.
     const day = String(currentDate.getDate()).padStart(2, '0');
     const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed, so add 1.
     const year = currentDate.getFullYear();
-  
+    
     // Format the date as "yyyy-mm-dd"
     const formattedDate = `${year}-${month}-${day}`;
-  
+    
     const newSupply = {
       date: formattedDate,
       amount: formData.amount,
@@ -323,20 +348,27 @@ const SuppliesContent = () => {
       remaining_amount: formData.remaining_amount,
       supplierId: formData.supplierId,
     };
+    
+    const newSupplyProducts = productInputs.map((nps) => {
+      // Format expiration date from "YYYY/MM/DD" to "DD/MM/YYYY"
+      const [expYear, expMonth, expDay] = nps.expirationDate.split('-'); // Split the date string
+      const formattedExpirationDate = `${expDay}/${expMonth}/${expYear}`; // Rearrange to "DD/MM/YYYY"
   
-    const newSupplyProducts = productInputs.map((nps) => ({
-      supplyId: lastSupplyId + 1,
-      productId: nps.productId,
-      purchase_price: nps.purchasePrice,
-      quantity: nps.quantity,
-    }));
-  
+      return {
+        supplyId: lastSupplyId + 1,
+        productId: nps.productId,
+        purchase_price: nps.purchasePrice,
+        quantity: nps.quantity,
+        expiration_date: formattedExpirationDate, // Use the formatted expiration date
+        alert_interval: nps.alert_interval
+      };
+    });
+
+    console.log(newSupplyProducts)
+      
     handleAddSupply(newSupply, newSupplyProducts);
   };
-
-  console.log(suppliers)
-  console.log(formData)
-
+  
   const InputsConfig = [
     {
       type : 'number',

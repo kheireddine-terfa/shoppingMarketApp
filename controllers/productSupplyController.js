@@ -1,18 +1,36 @@
-const {Product,ProductSupply } = require('../models');
+const {Product,ProductSupply,ExpirationDate } = require('../models');
 const { Op } = require('sequelize'); // Import Op from Sequelize
 
 
 const createProductSupply = async (req, res) => {
   try {
     console.log('Request Body:', req.body);
-    const { quantity,purchase_price , productId, supplyId} = req.body;
-    const productSupply = await ProductSupply.create({ quantity, purchase_price, productId, supplyId });
-    res.status(201).json(productSupply);
+    const { quantity, purchase_price, productId, supplyId, expiration_date,alert_interval } = req.body;
+    
+    // Create the ProductSupply entry
+    const productSupply = await ProductSupply.create({
+      quantity,
+      purchase_price,
+      productId,
+      supplyId
+    });
+    
+    // Create the ExpirationDate entry, using 'date' instead of 'expiration_date'
+    const expirationDate = await ExpirationDate.create({
+      date: expiration_date, // Map 'expiration_date' to the 'date' column in the model
+      alert_interval,
+      productId,
+      supplyId
+    });
+
+    // Send the responses
+    res.status(201).json({ productSupply, expirationDate });
   } catch (error) {
     console.error('Error creating product supply:', error);
     res.status(500).json({ error: 'Failed to create product supply' });
   }
 };
+
 
 
 const getProductSupplies = async (req, res) => {
@@ -134,6 +152,19 @@ const updateProductSupply = async (req, res) => {
     // Wait for all quantity updates to complete
     await Promise.all(decreaseQuantityPromises);
 
+    // Delete associated expiration dates for the supplies to be deleted
+    const expirationDeletePromises = suppliesToDelete.map(async (supply) => {
+      await ExpirationDate.destroy({
+        where: {
+          supplyId: supply.supplyId,
+          productId: supply.productId,
+        },
+      });
+    });
+
+    // Wait for all expiration date deletions to complete
+    await Promise.all(expirationDeletePromises);
+
     // Finally, delete the ProductSupply records
     await ProductSupply.destroy({
       where: {
@@ -151,9 +182,6 @@ const updateProductSupply = async (req, res) => {
     res.status(500).json({ error: 'Failed to update or insert product supply' });
   }
 };
-
-
-
 
 
 const deleteProductSupply = async (req, res) => {

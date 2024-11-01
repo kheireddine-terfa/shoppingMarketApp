@@ -1,4 +1,4 @@
-const { Supply,Supplier } = require('../models')
+const { Supply,Supplier,Product,ProductSupply } = require('../models')
 const { sequelize } = require('../models'); // Use require instead of import
 const catchAsync = require('../utils/catchAsync')
 const AppError = require('../utils/appError')
@@ -85,37 +85,72 @@ const updateSupply = async (req, res) => {
 
 const deleteSupply = async (req, res) => {
   try {
-    const { id } = req.params
-    const supply = await Supply.findByPk(id)
-    if (supply) {
-      supply.supplierId = null
-      await supply.save()
-      await supply.destroy()
-      res.status(204).send()
-    } else {
-      res.status(404).json({ error: 'Supply not found' })
+    const { id } = req.params;
+    const supply = await Supply.findByPk(id);
+    if (!supply) {
+      return res.status(404).json({ error: 'Supply not found' });
     }
+
+    // Get all associated ProductSupply entries for the supply
+    const productSupplies = await ProductSupply.findAll({
+      where: {
+        supplyId: id,
+      },
+    });
+
+    // Reduce the quantities of the associated products
+    for (const productSupply of productSupplies) {
+      const product = await Product.findByPk(productSupply.productId);
+      if (product) {
+        // Decrease the product quantity
+        const newQuantity = product.quantity - productSupply.quantity;
+        await product.update({ quantity: newQuantity < 0 ? 0 : newQuantity });
+      }
+    }
+
+    // Proceed to delete the supply
+    supply.supplierId = null;
+    await supply.save();
+    await supply.destroy();
+
+    res.status(204).send();
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete supply' })
+    console.error('Error deleting supply:', error);
+    res.status(500).json({ error: 'Failed to delete supply' });
   }
-}
+};
+
 
 const deleteAllSupplies = catchAsync(async (req, res) => {
   try {
+    // Retrieve all ProductSupply entries before deleting supplies
+    const productSupplies = await ProductSupply.findAll();
+
+    // Reduce the quantities of the associated products
+    for (const productSupply of productSupplies) {
+      const product = await Product.findByPk(productSupply.productId);
+      if (product) {
+        // Decrease the product quantity
+        const newQuantity = product.quantity - productSupply.quantity;
+        await product.update({ quantity: newQuantity < 0 ? 0 : newQuantity });
+      }
+    }
+
     // Delete all supplies from the database
-    await Supply.destroy({ where: {}, truncate: true })
+    await Supply.destroy({ where: {}, truncate: true });
 
     // Reset the auto-increment sequence (for SQLite)
     await Supply.sequelize.query(
-      "DELETE FROM sqlite_sequence WHERE name='Supplies';",
-    )
+      "DELETE FROM sqlite_sequence WHERE name='Supplies';"
+    );
 
-    res.status(200).json({ message: 'All Supplies  deleted successfully' })
+    res.status(200).json({ message: 'All Supplies deleted successfully' });
   } catch (error) {
-    console.error('Error deleting Supplies:', error)
-    res.status(500).json({ error: error.message })
+    console.error('Error deleting Supplies:', error);
+    res.status(500).json({ error: error.message });
   }
-})
+});
+
 
 async function getSuppliedProductsBySupplyId(req, res) {
   const { supplyId } = req.params; // Assuming supplyId is passed as a URL parameter
