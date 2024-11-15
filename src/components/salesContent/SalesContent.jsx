@@ -7,6 +7,8 @@ import Category from './Category'
 import QuantityModal from './QuantityModal'
 import BarcodeScanner from '../barcodeScanner/BarcodeScanner'
 import dayjs from 'dayjs';
+import { fetchCategories,fetchNoBarCodeProducts,handleQuantityUpdate, handleValidateSaleClick,handleBarcodeScanned } from '../../api/newSaleApi'
+import { handleCategoryClick,handleProductClick, handleModalClose,handleDelete,handleAddToSale } from '../../utilities/newSaleUtils'
 
 
 const SalesContent = () => {
@@ -24,200 +26,17 @@ const SalesContent = () => {
   const [remainingAmount, setRemainingAmount] = useState(0) // New state for remaining amount
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [description, setDescription] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
+  const [moneyGiven, setMoneyGiven] = useState(''); // New state for money given by the customer
+
+
 
   // Fetch categories and products when the component mounts
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get('http://localhost:3001/api/categories') // Replace with your API
-        setCategories(response.data)
-      } catch (error) {
-        console.error('Failed to fetch categories', error)
-      }
-    }
-
-    const fetchNoBarCodeProducts = async () => {
-      try {
-        const response = await axios.get(
-          'http://localhost:3001/api/products/no-barcode',
-        ) // Replace with your API endpoint
-        setNoBarCodeProducts(response.data)
-        console.log(noBarCodeProducts)
-      } catch (error) {
-        console.error('Failed to fetch products', error)
-      }
-    }
-
-    fetchCategories()
-    fetchNoBarCodeProducts()
+    fetchCategories(setCategories,setErrorMessage,setShowErrorPopup)
+    fetchNoBarCodeProducts(setNoBarCodeProducts,noBarCodeProducts,setErrorMessage,setShowErrorPopup)
   }, [])
-
-  const handleCategoryClick = (category) => {
-    setSelectedCategory(category)
-    const filteredProducts = noBarCodeProducts.filter(
-      (product) => product.categoryId === category.id,
-    )
-    console.log(filteredProducts)
-    setSelectedProducts(filteredProducts)
-  }
-
-  const handleProductClick = (product) => {
-    setSelectedProduct(product)
-    setModalVisible(true)
-  }
-
-  const handleModalClose = () => {
-    setModalVisible(false)
-    setSelectedProduct(null)
-  }
-
-  const handleAddToSale = (product, selectedQuantity) => {
-    if (selectedQuantity === 0) {
-      return
-    }
-
-    const existingProduct = productsToSale.find((p) => p.id === product.id)
-    if (existingProduct) {
-      setProductsToSale(
-        productsToSale.map((p) => (p.id === product.id ? { ...p } : p)),
-      )
-    } else {
-      setProductsToSale([
-        ...productsToSale,
-        { ...product, quantity: selectedQuantity },
-      ])
-    }
-
-    handleModalClose()
-  }
-
-  const handleQuantityUpdate = async (id, newQuantity) => {
-    const product = await axios.get(`http://localhost:3001/api/products/${id}`)
-    const maxQuantity = product.data.quantity
-
-    console.log(product)
-
-    if (newQuantity > maxQuantity) {
-      alert(
-        `Quantity cannot exceed the maximum allowed quantity of ${maxQuantity}.`,
-      )
-      return // Exit the function without updating the state
-    }
-
-    // Update the product quantity if the new quantity is valid
-    setProductsToSale(
-      productsToSale.map((product) =>
-        product.id === id ? { ...product, quantity: newQuantity } : product,
-      ),
-    )
-  }
-
-  const handleDelete = (id) => {
-    setProductsToSale(productsToSale.filter((product) => product.id !== id))
-  }
-
-  const handleValidateSaleClick = async () => {
-    const confirmSale = window.confirm(
-      'Are you sure you want to confirm this sale?',
-    );
-  
-    if (!confirmSale) {
-      return; // Exit the function if the user cancels
-    }
-  
-    try {
-      // Calculate totalPrice
-      const totalPrice = productsToSale
-        .reduce((sum, product) => {
-          const productPrice = product.balanced_product
-            ? product.price * (product.quantity / 1000)
-            : product.price * product.quantity;
-          return sum + productPrice;
-        }, 0)
-        .toFixed(2);
-  
-      console.log('Total Price:', totalPrice); // Debug totalPrice
-  
-      // Determine paidAmount and remainingAmount
-      let updatedPaidAmount = 0;
-      let updatedRemainingAmount = parseFloat(totalPrice);
-  
-      if (isPaid === true) {
-        updatedPaidAmount = parseFloat(totalPrice); // Set paidAmount to totalPrice if paid
-        updatedRemainingAmount = 0; // Remaining amount should be 0
-      } else {
-        updatedPaidAmount = parseFloat(paidAmount) || 0;
-        updatedRemainingAmount = parseFloat(totalPrice) - updatedPaidAmount;
-      }
-  
-      console.log('Updated Paid Amount:', updatedPaidAmount); // Debug paidAmount
-      console.log('Updated Remaining Amount:', updatedRemainingAmount); // Debug remainingAmount
-  
-      // Update state
-      setPaidAmount(updatedPaidAmount);
-      setRemainingAmount(updatedRemainingAmount);
-      
-      const saleData = {
-        date: dayjs().format('YYYY-MM-DD'),
-        amount: parseFloat(totalPrice),
-        paid_amount: updatedPaidAmount,
-        remaining_amount: updatedRemainingAmount,
-        description: description,
-      };
-      
-  
-      console.log('Sale Data:', saleData);
-  
-      // Create sale
-      const saleResponse = await axios.post(
-        'http://localhost:3001/api/sales',
-        saleData,
-      );
-      const createdSale = saleResponse.data;
-      setSale(createdSale);
-  
-      // Create ProductSale entries
-      const productSalePromises = productsToSale.map((product) => {
-        return axios.post('http://localhost:3001/api/product-sales', {
-          quantity: product.quantity,
-          productId: product.id,
-          saleId: createdSale.id,
-        });
-      });
-  
-      const productsSaleResponse = await Promise.all(productSalePromises);
-      setProductsSale(productsSaleResponse.map((response) => response.data));
-  
-      console.log('Sale and ProductSales successfully created', {
-        sale: createdSale,
-        productsSale: productsSaleResponse,
-      });
-  
-      // Reload the app after the sale is confirmed and processed
-      window.location.reload();
-    } catch (error) {
-      console.error('Failed to validate sale', error);
-    }
-  };
-  
-  
-
-  const handleBarcodeScanned = async (barcode) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:3001/api/products/barcode/${barcode}`,
-      )
-      const product = response.data
-
-      if (product) {
-        handleAddToSale(product, 1) // Add the product with a default quantity of 1
-      } else {
-        alert('Product not found')
-      }
-    } catch (error) {
-      console.error('Failed to fetch product by barcode', error)
-    }
-  }
 
   const totalQuantity = useMemo(() => {
     return productsToSale.reduce(
@@ -238,7 +57,20 @@ const SalesContent = () => {
   }, [productsToSale])
 
   return (
-    <main className="container mx-auto p-4 mt-[52px]">
+    <main className="container mx-auto p-4 mt-[46px]">
+     <div>
+      <input
+       type="text"
+       placeholder='enter barcode ... '
+       className="mt-4 mr-2 p-2 w-1/3 border rounded-md"
+      />
+      <button
+      className="px-8 py-2 bg-blue-500 text-white font-bold rounded-md hover:bg-blue-600"
+      >
+      search
+      </button>
+
+    </div>
       <h1 className="text-2xl p-4 w-6/12">Articles sans code barre</h1>
       <div className="flex">
         <section className="w-1/2 p-4 mr-10">
@@ -249,7 +81,7 @@ const SalesContent = () => {
                   imageSrc={`/categoriesImages/${category.image}`}
                   key={category.id}
                   title={category.name}
-                  onClick={() => handleCategoryClick(category)}
+                  onClick={() => handleCategoryClick(category,setSelectedCategory,setSelectedProducts,noBarCodeProducts)}
                 />
               ))}
             </div>
@@ -261,17 +93,17 @@ const SalesContent = () => {
               >
                 Retour aux catégories
               </button>
-              <div className="grid grid-cols-3 gap-5 gap-y-12">
+              <div className=" h-[500px] overflow-y-auto grid grid-cols-4 gap-6 gap-y-12">
                 {selectedProducts.map((product) => (
                   <div
                     key={product.id}
                     className="bg-zinc-100 text-center h-40"
-                    onClick={() => handleProductClick(product)}
+                    onClick={() => handleProductClick(product,setSelectedProduct,setModalVisible)}
                   >
                     <img
                       src={`/productsImages/${product.image}`}
                       alt={product.name}
-                      className="mx-auto h-full object-cover "
+                      className="mx-auto h-20 w-20 object-cover "
                     />
                     <h3 className="mt-2 text-lg md:text-xl lg:text-2xl">
                       {product.name}
@@ -283,8 +115,42 @@ const SalesContent = () => {
           )}
         </section>
 
-        <aside className="w-1/2 mr-10 min-h-[30rem] -mt-10">
-          <h1 className="text-2xl mb-4">Liste des produits sélectionnés</h1>
+        <aside className="w-1/2 mr-10 min-h-[30rem] -mt-32">
+        <div className="flex justify-end space-x-4 mt-0 p-4">
+          <button
+            onClick={() => { handleValidateSaleClick(
+            productsToSale,
+            isPaid,
+            paidAmount,
+             setPaidAmount,
+            setRemainingAmount,
+            description,
+            setSale,
+            setProductsSale,
+            setErrorMessage,
+            setShowErrorPopup,
+            moneyGiven,
+            totalPrice
+           );
+          }}
+          className="px-8 py-3 bg-green-500 text-white font-bold rounded-md hover:bg-green-600"
+          disabled={productsToSale.length === 0}
+          >
+         Valider
+         </button>
+            <button
+              onClick={() => setProductsToSale([])}
+              className="px-8 py-3 bg-red-500 text-white font-bold rounded-md hover:bg-red-600"
+            >
+              Annuler
+            </button>
+          </div>
+
+          <div className="flex justify-between p-4 bg-white shadow-md rounded-md mb-4">
+            <span className="w-1/3 text-left font-bold text-2xl">Total</span>
+            <span className="w-1/3 text-center text-2xl">{totalQuantity}</span>
+            <span className="w-1/3 text-right text-2xl">{totalPrice} DA</span>
+          </div>
 
           {productsToSale.length === 0 ? (
             <div className="flex flex-col items-center justify-center bg-white shadow-md rounded-md p-8">
@@ -299,19 +165,13 @@ const SalesContent = () => {
                 <li key={product.id} className="p-4">
                   <SaledProduct
                     product={product}
-                    onDelete={handleDelete}
-                    onQuantityChange={handleQuantityUpdate}
+                    onDelete={(id) => handleDelete(id,setProductsToSale,productsToSale)}
+                    onQuantityChange={(id,newQuantity) => handleQuantityUpdate(id, newQuantity,setProductsToSale,productsToSale,setErrorMessage,setShowErrorPopup)}
                   />
                 </li>
               ))}
             </ul>
           )}
-
-          <div className="flex justify-between p-4 bg-white shadow-md rounded-md mt-4">
-            <span className="w-1/3 text-left font-bold text-2xl">Total</span>
-            <span className="w-1/3 text-center text-2xl">{totalQuantity}</span>
-            <span className="w-1/3 text-right text-2xl">{totalPrice} DA</span>
-          </div>
 
           <div className="flex flex-col mt-4 p-4 bg-white shadow-md rounded-md">
             <label className="flex items-center space-x-2">
@@ -329,7 +189,7 @@ const SalesContent = () => {
                   Amount Paid:
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   value={paidAmount}
                   onChange={(e) => setPaidAmount(parseFloat(e.target.value))}
                   className="mt-1 p-2 w-full border rounded-md"
@@ -337,6 +197,17 @@ const SalesContent = () => {
                 />
               </div>
             )}
+            <div className="mt-2">
+              <label className="block text-lg font-semibold">Montant donné par le client:</label>
+              <input
+              type="number"
+              value={moneyGiven}
+              onChange={(e) => setMoneyGiven(e.target.value)}
+              className="mt-1 p-2 w-full border rounded-md"
+              min="0"
+            placeholder="Entrez le montant donné"
+           />
+            </div>
             <div className="mt-2">
               <label className="block text-lg font-semibold">Déscription</label>
               <input
@@ -349,33 +220,17 @@ const SalesContent = () => {
             </div>
           </div>
 
-          <div className="flex justify-end space-x-4 mt-4 p-4">
-            <button
-              onClick={handleValidateSaleClick}
-              className="px-4 py-2 bg-green-500 text-white font-bold rounded-md hover:bg-green-600"
-              disabled={productsToSale.length === 0}
-            >
-              Valider
-            </button>
-            <button
-              onClick={() => setProductsToSale([])}
-              className="px-4 py-2 bg-red-500 text-white font-bold rounded-md hover:bg-red-600"
-            >
-              Annuler
-            </button>
-          </div>
         </aside>
       </div>
-
       {modalVisible && selectedProduct && (
         <QuantityModal
           product={selectedProduct}
-          onClose={handleModalClose}
-          onAddToSale={handleAddToSale}
+          onClose={() => handleModalClose(setModalVisible,setSelectedProduct)}
+          onAddToSale={(product,selectedQuantity) => handleAddToSale(product, selectedQuantity,productsToSale,setProductsToSale,setModalVisible,setSelectedProduct)}
           maxQuantity={selectedProduct.quantity}
         />
       )}
-      <BarcodeScanner onBarcodeScanned={handleBarcodeScanned} />
+      <BarcodeScanner onBarcodeScanned={(barcode) => handleBarcodeScanned(barcode,handleAddToSale,setErrorMessage,setShowErrorPopup,productsToSale,setProductsToSale)} />
     </main>
   )
 }

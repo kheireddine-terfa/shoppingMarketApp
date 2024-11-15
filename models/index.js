@@ -74,6 +74,10 @@ Sale.belongsToMany(Product, {
 })
 Supply.belongsTo(Supplier, { foreignKey: 'supplierId' })
 Supplier.hasMany(Supply, { foreignKey: 'supplierId' })
+
+ExpirationDate.belongsTo(Supply, { foreignKey: 'supplyId', onDelete: 'CASCADE' })
+Supply.hasMany(ExpirationDate, { foreignKey: 'supplyId', onDelete: 'CASCADE' })
+
 // Ensure you define the reverse association as well if needed
 ProductSale.belongsTo(Product, { foreignKey: 'productId', as: 'Product' })
 ProductSale.belongsTo(Sale, { foreignKey: 'saleId', as: 'Sale' })

@@ -27,10 +27,10 @@ const QuantityModal = ({ product, onClose, onAddToSale, maxQuantity }) => {
           Quantité maximale: {maxQuantity} {product.balanced_product ? 'grammes' : 'pièces'}
         </p>
         <input
-          type="number"
+          type="text"
           value={quantity}
           onChange={handleQuantityChange}
-          min="1"
+          min="0"
           max={maxQuantity}
           className="w-full border rounded-md p-2 mb-4"
         />

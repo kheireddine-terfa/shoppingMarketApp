@@ -4,7 +4,8 @@ const {
   getExpirationDates,
   getExpirationDateById,
   updateExpirationDate,
-  deleteExpirationDate
+  deleteExpirationDate,
+  getExpirationDateBySupplyId,
 } = require('../controllers/expirationDateController');
 
 const router = express.Router();
@@ -18,8 +19,10 @@ router.get('/', getExpirationDates);
 // Get a single expiration date by ID
 router.get('/:id', getExpirationDateById);
 
+router.get('/supply/:supplyId', getExpirationDateBySupplyId);
+
 // Update an expiration date by ID
-router.put('/:id', updateExpirationDate);
+router.put('/', updateExpirationDate);
 
 // Delete an expiration date by ID
 router.delete('/:id', deleteExpirationDate);
