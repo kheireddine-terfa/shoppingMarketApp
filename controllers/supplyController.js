@@ -1,173 +1,135 @@
-const { Supply,Supplier } = require('../models')
-const { sequelize } = require('../models'); // Use require instead of import
-const catchAsync = require('../utils/catchAsync')
-const AppError = require('../utils/appError')
+const { Supply, Supplier, Product, ProductSupply } = require('../models');
+const { sequelize } = require('../models');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 
+const createSupply = catchAsync(async (req, res, next) => {
+  const { date, amount, description, paid_amount, remaining_amount, supplierId } = req.body;
+  const supply = await Supply.create({
+    date,
+    amount,
+    description,
+    paid_amount,
+    remaining_amount,
+    supplierId
+  });
+  res.status(201).json(supply);
+});
 
-const createSupply = async (req, res) => {
-  try {
-    const {
-      date,
-      amount,
-      description,
-      paid_amount,
-      remaining_amount,
-      supplierId
-    } = req.body
-    const supply = await Supply.create({
-      date,
-      amount,
-      description,
-      paid_amount,
-      remaining_amount,
-      supplierId
-    })
-    res.status(201).json(supply)
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to create supply' })
+const getSupplies = catchAsync(async (req, res, next) => {
+  const supplies = await Supply.findAll({});
+  res.status(200).json(supplies);
+});
+
+const getSupplyById = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const supply = await Supply.findByPk(id);
+  if (!supply) {
+    return next(new AppError('Supply not found', 404));
   }
-}
+  res.status(200).json(supply);
+});
 
-const getSupplies = async (req, res) => {
-  try {
-    console.log('here')
-    const supplies = await Supply.findAll({
-      attributes: { },
-    })
-    res.status(200).json(supplies)
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch supplies' })
+const updateSupply = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const { amount, description, paid_amount, remaining_amount, supplierId } = req.body;
+  const supply = await Supply.findByPk(id);
+
+  if (!supply) {
+    return next(new AppError('Supply not found', 404));
   }
-}
 
-const getSupplyById = async (req, res) => {
-  try {
-    const { id } = req.params
-    const supply = await Supply.findByPk(id)
-    if (supply) {
-      res.status(200).json(supply)
-    } else {
-      res.status(404).json({ error: 'Supply not found' })
+  await supply.update({
+    amount,
+    description,
+    paid_amount,
+    remaining_amount,
+    supplierId
+  });
+  res.status(200).json(supply);
+});
+
+const deleteSupply = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const supply = await Supply.findByPk(id);
+
+  if (!supply) {
+    return next(new AppError('Supply not found', 404));
+  }
+
+  // Get all associated ProductSupply entries for the supply
+  const productSupplies = await ProductSupply.findAll({
+    where: { supplyId: id },
+  });
+
+  for (const productSupply of productSupplies) {
+    const product = await Product.findByPk(productSupply.productId);
+    if (product) {
+      const newQuantity = product.quantity - productSupply.quantity;
+      await product.update({ quantity: Math.max(newQuantity, 0) });
     }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch supply' })
   }
-}
 
-const updateSupply = async (req, res) => {
+  supply.supplierId = null;
+  await supply.save();
+  await supply.destroy();
+
+  res.status(204).send();
+});
+
+const deleteAllSupplies = catchAsync(async (req, res, next) => {
   try {
-    const { id } = req.params
-    const {
-      amount,
-      description,
-      paid_amount,
-      remaining_amount,
-      supplierId
-    } = req.body
-    const supply = await Supply.findByPk(id)
+    const productSupplies = await ProductSupply.findAll();
 
-    if (supply) {
-      await supply.update({
-        amount,
-        description,
-        paid_amount,
-        remaining_amount,
-        supplierId
-      })
-      res.status(200).json(supply)
-    } else {
-      res.status(404).json({ error: 'Supply not found' })
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update supply' })
-  }
-}
-
-const deleteSupply = async (req, res) => {
-  try {
-    const { id } = req.params
-    const supply = await Supply.findByPk(id)
-    if (supply) {
-      supply.supplierId = null
-      await supply.save()
-      await supply.destroy()
-      res.status(204).send()
-    } else {
-      res.status(404).json({ error: 'Supply not found' })
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete supply' })
-  }
-}
-
-const deleteAllSupplies = catchAsync(async (req, res) => {
-  try {
-    // Delete all supplies from the database
-    await Supply.destroy({ where: {}, truncate: true })
-
-    // Reset the auto-increment sequence (for SQLite)
-    await Supply.sequelize.query(
-      "DELETE FROM sqlite_sequence WHERE name='Supplies';",
-    )
-
-    res.status(200).json({ message: 'All Supplies  deleted successfully' })
-  } catch (error) {
-    console.error('Error deleting Supplies:', error)
-    res.status(500).json({ error: error.message })
-  }
-})
-
-async function getSuppliedProductsBySupplyId(req, res) {
-  const { supplyId } = req.params; // Assuming supplyId is passed as a URL parameter
-  try {
-    const result = await sequelize.query(
-      `SELECT 
-          ProductSupplies.productId,
-          ProductSupplies.quantity, 
-          ProductSupplies.purchase_price,
-          Products.name 
-       FROM 
-          ProductSupplies
-       JOIN 
-          Products ON Products.id = ProductSupplies.productId
-       WHERE 
-          ProductSupplies.supplyId = :supplyId`, // Use a named parameter for supplyId
-      {
-        replacements: { supplyId }, // Replace supplyId in the query
-        type: sequelize.QueryTypes.SELECT
+    for (const productSupply of productSupplies) {
+      const product = await Product.findByPk(productSupply.productId);
+      if (product) {
+        const newQuantity = product.quantity - productSupply.quantity;
+        await product.update({ quantity: Math.max(newQuantity, 0) });
       }
-    );
-
-    // Send the result as a JSON response
-    res.json(result);
-  } catch (error) {
-    console.error('Error fetching products by supply ID:', error);
-    res.status(500).json({ error: 'An error occurred while fetching the products.' });
-  }
-}
-
-const getSupplierBySupplyId = async (req, res) => {
-  const { supplyId } = req.params;
-
-  try {
-    // Find the supply by ID and include the associated supplier
-    const supply = await Supply.findByPk(supplyId, {
-      include: Supplier, // No alias needed if you're not using one
-    });
-
-    if (!supply) {
-      return res.status(404).json({ message: 'Supply not found' });
     }
 
-    // Send the associated supplier as a response
-    return res.json(supply.Supplier); // Sequelize uses the model name by default
+    await Supply.destroy({ where: {}, truncate: true });
+    await Supply.sequelize.query("DELETE FROM sqlite_sequence WHERE name='Supplies';");
+
+    res.status(200).json({ message: 'All supplies deleted successfully' });
   } catch (error) {
-    console.error('Error fetching supplier:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return next(new AppError(error.message, 500));
   }
-};
+});
 
+const getSuppliedProductsBySupplyId = catchAsync(async (req, res, next) => {
+  const { supplyId } = req.params;
+  const result = await sequelize.query(
+    `SELECT 
+        ProductSupplies.productId,
+        ProductSupplies.quantity, 
+        ProductSupplies.purchase_price,
+        Products.name 
+     FROM 
+        ProductSupplies
+     JOIN 
+        Products ON Products.id = ProductSupplies.productId
+     WHERE 
+        ProductSupplies.supplyId = :supplyId`,
+    {
+      replacements: { supplyId },
+      type: sequelize.QueryTypes.SELECT
+    }
+  );
+  res.json(result);
+});
 
+const getSupplierBySupplyId = catchAsync(async (req, res, next) => {
+  const { supplyId } = req.params;
+  const supply = await Supply.findByPk(supplyId, { include: Supplier });
+
+  if (!supply) {
+    return next(new AppError('Supply not found', 404));
+  }
+
+  res.json(supply.Supplier);
+});
 
 module.exports = {
   createSupply,
@@ -178,4 +140,4 @@ module.exports = {
   deleteAllSupplies,
   getSupplierBySupplyId,
   getSuppliedProductsBySupplyId,
-}
+};

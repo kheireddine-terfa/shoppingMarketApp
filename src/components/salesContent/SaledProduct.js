@@ -5,12 +5,10 @@ const SaledProduct = ({ product, onDelete, onQuantityChange }) => {
   const pricePerUnit = product.balanced_product ? (product.price / 1000) : product.price;
   const totalPrice = (pricePerUnit * product.quantity).toFixed(2);
 
-
-
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-4">
-        <img src={require('./nois.jpeg')} alt={product.name} className="h-12 w-12 object-cover" />
+        <img src={require('../../../public/productsImages/'+ product.image)} alt={product.name} className="h-12 w-12 object-cover" />
         <div>
           <h3 className="text-lg font-semibold">{product.name}</h3>
           <p className="text-gray-500">{totalPrice} DA</p>

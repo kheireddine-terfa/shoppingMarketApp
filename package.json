@@ -72,8 +72,10 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
+    "customize-cra": "^1.0.0",
     "electron": "^31.3.1",
     "nodemon": "^3.1.4",
+    "react-app-rewired": "^2.2.1",
     "wait-on": "^7.2.0"
   }
 }

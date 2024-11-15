@@ -4,7 +4,7 @@ const { sequelize } = require('../models') // Use require instead of import
 const AppError = require('../utils/appError')
 const catchAsync = require('../utils/catchAsync')
 
-async function getSalesCountByDate(req, res) {
+const getSalesCountByDate = catchAsync(async (req, res) => {
   try {
     const { date } = req.params // Assuming the date is passed as a URL parameter
     const salesCount = await Sale.count({
@@ -22,9 +22,10 @@ async function getSalesCountByDate(req, res) {
       .status(500)
       .json({ error: 'An error occurred while fetching the sales count.' })
   }
-}
+})
 
-async function getTopUnbalancedProductsByDate(req, res) {
+
+const getTopUnbalancedProductsByDate = catchAsync(async (req, res) => {
   const { date } = req.params // Assuming the date is passed as a URL parameter in the format 'YYYY-MM'
 
   try {
@@ -56,9 +57,9 @@ async function getTopUnbalancedProductsByDate(req, res) {
     console.error('Error fetching top unbalanced products:', error)
     return res.status(500).json({ error: 'Internal Server Error' })
   }
-}
+})
 
-async function getTopProfitableUnbalancedProductsByDate(req, res) {
+const getTopProfitableUnbalancedProductsByDate = catchAsync(async (req, res) => {
   const { date } = req.params // Assuming the date is passed as a URL parameter in the format 'YYYY-MM'
 
   try {
@@ -90,9 +91,9 @@ async function getTopProfitableUnbalancedProductsByDate(req, res) {
     console.error('Error fetching top profitable unbalanced products:', error)
     return res.status(500).json({ error: 'Internal Server Error' })
   }
-}
+})
 
-async function getTotalIncomeByDate(req, res) {
+const getTotalIncomeByDate = catchAsync(async (req, res) => {
   const { date } = req.params // Assuming the date is passed as a URL parameter
   try {
     const result = await sequelize.query(
@@ -127,9 +128,9 @@ async function getTotalIncomeByDate(req, res) {
       .status(500)
       .json({ error: 'An error occurred while fetching the total income.' })
   }
-}
+})
 
-async function getTotalrevenue(req, res) {
+const getTotalrevenue = catchAsync(async (req, res) => {
   try {
     const { date } = req.params // Assuming the date is passed as a URL parameter
     const cash = await Sale.sum('amount', {
@@ -147,9 +148,9 @@ async function getTotalrevenue(req, res) {
       error: 'An error occurred while fetching the sum of paid amounts.',
     })
   }
-}
+})
 
-async function getSumRemainingAmount(req, res) {
+const getSumRemainingAmount = catchAsync(async (req, res) => {
   try {
     const { date } = req.params // Assuming the date is passed as a URL parameter
 
@@ -169,9 +170,9 @@ async function getSumRemainingAmount(req, res) {
       error: 'An error occurred while fetching the sum of remaining amounts.',
     })
   }
-}
+})
 
-async function getSumOfPaidAmounts(req, res) {
+const getSumOfPaidAmounts = catchAsync(async (req, res) => {
   try {
     const { date } = req.params // Assuming the date is passed as a URL parameter
     const revenuesSum = await Sale.sum('paid_amount', {
@@ -189,7 +190,8 @@ async function getSumOfPaidAmounts(req, res) {
       error: 'An error occurred while fetching the sum of paid amounts.',
     })
   }
-}
+})
+
 // You Need to wrrap the function inside the catchAsync function and also use the AppError Class to send custom errors above ..AZ
 const createSale = catchAsync(async (req, res, next) => {
   const { date, amount, paid_amount, remaining_amount, description } = req.body
