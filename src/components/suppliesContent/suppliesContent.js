@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from 'react'
 import Table from '../commonComponents/Table'
-// import AddProductModal from './relatedComponents/AddProductModal'
-import AddModal from '../commonComponents/AddModal'
 import ConfirmModal from '../commonComponents/ConfirmModal'
 import UpdateModal from '../commonComponents/UpdateModal'
 import AddModalWithProducts from './relatedComponenets/addModalWithProducts'
-import axios from 'axios'
 import DetailsModal from '../commonComponents/DetailsModal'
+import { initialFormData } from '../../utilities/productUtils'
+import { fetchSupplies
+  ,fetchSuppliers,
+  handleConfirmDelete,
+  handleDeleteAll,
+  handleAddSubmit,
+  handleUpdateSubmit,
+  handleUpdateSupply,
+  handleShowDetails } from '../../api/supplyApi'
+  import { InputsConfig, headerConfig, modalData } from '../../config/supplyConfig'
+  import { filteredSupplies,formatDate } from '../../utilities/supplyUtils'
+
 // check the controller :
 const SuppliesContent = () => {
   //----------- States:
@@ -21,61 +30,15 @@ const SuppliesContent = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [lastSupplyId,setLastSupplyId ] = useState(0)
-  const initialFormData = {
-    date: '',
-    amount: '',
-    description: '',
-    paid_amount: '',
-    remaining_amount: '',
-    supplierId:''
-  }
   const [formData, setFormData] = useState(initialFormData)
 
-  const fetchSuppliers = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/suppliers')
-      const data = await response.json()
-      setSuppliers(data)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
 
-  // Fetch supplies from the backend
-  const fetchSupplies = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/supplies');
-      const data = await response.json();
-      // Map the data as before
-      const mappedSupplies = data.map((supply) => {
-        return {
-          id: supply.id,
-          amount: supply.amount,
-          description: supply.description,
-          paid_amount: supply.paid_amount,
-          remaining_amount: supply.remaining_amount,
-          titleHref: `/supplies/${supply.id}`,
-          date: supply.date,
-          currentSupply: supply,
-        };
-      });
-
-      // Set the supplies state
-      setSupplies(mappedSupplies);
-
-      // Get the last supply ID
-      if (data.length > 0) {
-        const lastSupply = data[data.length - 1]; // Assuming the last element in data is the latest
-        setLastSupplyId(lastSupply.id);
-      }
-    } catch (error) {
-      console.error('Error fetching supplies:', error);
-    }
-  };
   useEffect(() => {
-    fetchSupplies()
-    fetchSuppliers()
+    fetchSupplies(setSupplies,setLastSupplyId,setShowErrorPopup,setErrorMessage)
+    fetchSuppliers(setSuppliers,setErrorMessage,setShowErrorPopup)
   }, [])
 
   const handleDeleteClick = (supply) => {
@@ -83,425 +46,36 @@ const SuppliesContent = () => {
     setShowDeleteModal(true)
   }
 
-  // Handle delete
-  const handleConfirmDelete = async () => {
-    if (!selectedSupply) return // Ensure selectedSupply is set
-    try {
-      const response = await fetch(
-        `http://localhost:3001/api/supplies/${selectedSupply}`,
-        {
-          // Use template literal with backticks
-          method: 'DELETE',
-        },
-      )
-      if (response.ok) {
-        // Remove the deleted supply from the state
-        setSupplies(supplies.filter((s) => s.id !== selectedSupply))
-        setSelectedSupply(null) // Reset selectedSupply after deletion
-        setShowDeleteModal(false) // Close the delete modal
-      } else {
-        console.error('Failed to delete supply')
-      }
-    } catch (error) {
-      console.error('Error deleting supply:', error)
-    }
-  }
-
-  // Handle delete all supplies
-  const handleDeleteAll = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/supplies', {
-        method: 'DELETE',
-      })
-
-      if (response.ok) {
-        fetchSupplies() // Re-fetch supplies after all are deleted
-        setShowConfirmModal(false) // Close the modal
-      } else {
-        console.error('Failed to delete all supplies')
-      }
-    } catch (error) {
-      console.error('Error deleting all supplies:', error)
-    }
-  }
-  // Handle add supply
-  const handleAddSupply = async (newSupply,newSupplyProducts) => {
-    try {
-       const response = await fetch('http://localhost:3001/api/supplies', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newSupply), // Send the FormData
-      })
-
-      if (response.ok) {
-
-        const supplyProducrsPromises = newSupplyProducts.map((nsp) => {
-          return axios.post('http://localhost:3001/api/product-supplies', {
-            quantity: parseInt(nsp.quantity),
-            purchase_price : parseInt(nsp.purchase_price),
-            productId: parseInt(nsp.productId),
-            supplyId: parseInt(nsp.supplyId),
-            expiration_date: nsp.expiration_date,
-            alert_interval:parseInt(nsp.alert_interval)
-          });
-        });
-        const addedSupply = await response.json()
-        // Update the state with the new supply including its
-        const updatedSupply = {
-          id: addedSupply.id,
-          titleHref: `/supplies/${addedSupply.id}`,
-          date: addedSupply.date,
-          amount: addedSupply.amount,
-          description: addedSupply.description,
-          paid_amount: addedSupply.paid_amount,
-          remaining_amount: addedSupply.remaining_amount,
-          supplierId : addedSupply.supplierId
-        }
-        setSupplies((prevSupplies) => [...prevSupplies, updatedSupply])
-        fetchSupplies()
-        setShowModal(false)
-        // Reset form data after adding a supply
-        setFormData(initialFormData)
-      } else {
-        console.error('Failed to add the supply')
-      }
-    } catch (error) {
-      console.error('Error adding supply:', error)
-    }
-  }
-  const handleUpdate = async (updatedSupply,UpdatedSupplyProducts,updatedexpirationDates) => {
-    try {
-      // Create a FormData object to handle the file upload and other data
-      const formData = {
-        date: updatedSupply.date,
-        amount: updatedSupply.amount,
-        description: updatedSupply.description,
-        paid_amount: updatedSupply.paid_amount,
-        remaining_amount: updatedSupply.remaining_amount,
-        supplierId : updatedSupply.supplierId
-      }
-
-      // Send the updated data to the backend
-      const response = await fetch(
-        `http://localhost:3001/api/supplies/${updatedSupply.id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        },
-      )
-
-      if (!response.ok) {
-        throw new Error('Failed to update the supply')
-      } else {
-        const promises = UpdatedSupplyProducts.map((usp) => {
-          return {
-            quantity: parseInt(usp.quantity),
-            purchase_price: parseInt(usp.purchase_price),
-            productId: parseInt(usp.productId),
-            supplyId: parseInt(usp.supplyId),
-            newProductId: parseInt(usp.newProductId),
-            expiration_date : usp.expirationDate,
-            alert_interval : parseInt(usp.alert_interval)
-          };
-        });
-        // Send the entire array in one request
-        await axios.put(`http://localhost:3001/api/product-supplies/`, promises);
-
-        const expDatesprodmises = updatedexpirationDates.map((ued) => {
-          return{
-            date : ued.expiration_date,
-            alert_interval : parseInt(ued.alert_interval),
-            productId : parseInt(ued.productId),
-            supplyId : parseInt(ued.supplyId),
-            newProductId:parseInt(ued.newProductId),
-          }
-        })
-
-        await axios.put(`http://localhost:3001/api/expiration-dates`,expDatesprodmises)
-        
-        fetchSupplies()
-        setShowUpdateModal(false)
-        setFormData(initialFormData)
-      }
-    } catch (error) {
-      console.error('Error updating supply:', error)
-      // Handle the error, e.g., show an error message to the user
-    }
-  }
-
-  const handleUpdateSubmit = (productInputs) => {
-    const updatedSupply = {
-      id: selectedSupply.id, // The ID of the supply being updated
-      date: formData.date,
-      amount: formData.amount,
-      description: formData.description,
-      paid_amount: formData.paid_amount,
-      remaining_amount: formData.remaining_amount,
-      supplierId : formData.supplierId
-    }
-
-    const UpdatedSupplyProducts = productInputs.map((product) => {
-      return{
-        supplyId :parseInt(selectedSupply.id),
-        productId : parseInt(product.productId),
-        purchase_price : parseInt(product.purchasePrice),
-        quantity : parseInt(product.quantity),
-        newProductId : parseInt(product.newProductId),
-      }})
-
-      const updatedexpirationDates = productInputs.map((product) => {
-        const [expYear, expMonth, expDay] = product.expirationDate.split('-'); // Split the date string
-        const formattedExpirationDate = `${expDay}/${expMonth}/${expYear}`; // Rearrange to "DD/MM/YYYY"
-        return{
-          supplyId :parseInt(selectedSupply.id),
-          productId : parseInt(product.productId),
-          expiration_date: formattedExpirationDate, // Use the formatted expiration date
-          alert_interval: parseInt(product.alert_interval),
-          newProdcutId : parseInt(product.newProductId),
-        }})
-    handleUpdate(updatedSupply,UpdatedSupplyProducts,updatedexpirationDates)
-  }
-
-  const handleUpdateSupply = async (supply) => {
-    setSelectedSupply(supply)
-    setFormData({
-      date: supply.date,
-      amount: supply.amount,
-      description: supply.description,
-      paid_amount: supply.paid_amount,
-      remaining_amount: supply.remaining_amount,
-      supplierId : supply.supplierId
-    })  
-    try {
-      const response = await fetch(`http://localhost:3001/api/supplies/${supply.id}/supply`)
-      const data = await response.json()
-      setSelectedSupplyProducts(data)
-    } catch (error) {
-      console.error('Error fetching supply products:', error)
-    }
-    setShowUpdateModal(true)
-  }
-
   const handleCancelUpdate = () => {
     setShowUpdateModal(false)
     setSelectedSupply(null)
-  }
-  // Filter supplies searching :
-  const filteredSupplies = supplies.filter((supply) => {
-    const searchLower = searchQuery.toLowerCase()
-    return (
-      (supply.date && supply.date.toString().includes(searchLower)) ||
-      (supply.amount && supply.amount.toString().toLowerCase().includes(searchLower)) ||
-      (supply.description.toString() &&
-        supply.description.toString().toLowerCase().includes(searchLower))
-    )
-  })
-
-  const handleShowDetails = async (supply) => {
-    try {
-      const response = await fetch(`http://localhost:3001/api/supplies/${supply.id}/supplier`)
-      const data = await response.json()
-      setSelectedSupplier(data.name)
-    } catch (error) {
-      console.error('Error fetching supplier:', error)
-    }
-    try {
-      const response = await fetch(`http://localhost:3001/api/supplies/${supply.id}/supply`)
-      const data = await response.json()
-      setSelectedSupplyProducts(data)
-    } catch (error) {
-      console.error('Error fetching supply products:', error)
-    }
-    setShowDetailsModal(true) // Show the details modal
-    setSelectedSupply(supply)
   }
 
   const handleCloseDetails = () => {
     setShowDetailsModal(false) // Close the details modal
   }
+
   const actions = {
     onDelete: handleDeleteClick,
-    onUpdate: handleUpdateSupply,
-    onShowDetails: handleShowDetails,
-  }
-  
-  const handleAddSubmit = (productInputs) => {
-
-    const currentDate = new Date(); // This creates a new Date object with the current date and time.
-    const day = String(currentDate.getDate()).padStart(2, '0');
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed, so add 1.
-    const year = currentDate.getFullYear();
-    
-    // Format the date as "yyyy-mm-dd"
-    const formattedDate = `${year}-${month}-${day}`;
-    
-    const newSupply = {
-      date: formattedDate,
-      amount: formData.amount,
-      description: formData.description,
-      paid_amount: formData.paid_amount,
-      remaining_amount: formData.remaining_amount,
-      supplierId: formData.supplierId,
-    };
-    
-    const newSupplyProducts = productInputs.map((nps) => {
-      // Format expiration date from "YYYY/MM/DD" to "DD/MM/YYYY"
-      const [expYear, expMonth, expDay] = nps.expirationDate.split('-'); // Split the date string
-      const formattedExpirationDate = `${expDay}/${expMonth}/${expYear}`; // Rearrange to "DD/MM/YYYY"
-  
-      return {
-        supplyId: lastSupplyId + 1,
-        productId: nps.productId,
-        purchase_price: nps.purchasePrice,
-        quantity: nps.quantity,
-        expiration_date: formattedExpirationDate, // Use the formatted expiration date
-        alert_interval: nps.alert_interval
-      };
-    });
-
-    console.log(newSupplyProducts)
-      
-    handleAddSupply(newSupply, newSupplyProducts);
+    onUpdate: (supply) => handleUpdateSupply(
+      setShowUpdateModal,
+      setSelectedSupply,
+      setFormData,
+      supply,
+      setErrorMessage,
+      setShowErrorPopup,
+      setSelectedSupplyProducts
+    ),
+    onShowDetails: (currentSupply) => handleShowDetails(
+      setSelectedSupply,
+      setShowDetailsModal,
+      setSelectedSupplyProducts,
+      setSelectedSupplier,
+      currentSupply,
+      setErrorMessage,
+      setShowErrorPopup),
   };
   
-  const InputsConfig = [
-    {
-      type : 'number',
-      label: 'Supply Amount',
-      value: formData.amount,
-      min: 0,
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          amount: e.target.value,
-        })),
-      required: true,
-    },
-    {
-      label: 'Supply Description',
-      value: formData.description,
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          description: e.target.value,
-        })),
-      required: false,
-      maxLength : "30"
-    },
-    {
-      type : 'number',
-      label: 'Paid Amount',
-      min: 0,
-      value: formData.paid_amount,
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          paid_amount: e.target.value,
-        })),
-      required: true,
-    },
-    {
-      type : 'number',
-      label: 'Remaining Amount',
-      min: 0,
-      value: formData.remaining_amount,
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          remaining_amount: e.target.value,
-        })),
-      required: true,
-    },
-    {
-      label: 'Supplier',
-      type: 'select',
-      value: formData.supplierId,
-      onChange: (e) =>
-        setFormData((prevData) => ({
-          ...prevData,
-          supplierId: e.target.value,
-        })),
-      options: suppliers,
-      required: true,
-      name: suppliers.find((supplier) => supplier.id === formData.supplierId)?.name || '',
-    }
-    
-  ]
-  const headerConfig = [
-    {
-      title: 'Supply Date',
-      class: 'pb-3 text-start min-w-[20%]',
-    },
-    {
-      title: 'amount',
-      class: 'pb-3 text-start min-w-[20%]',
-    },
-    {
-      title: 'Description',
-      class: 'pb-3 text-start min-w-[20%]',
-    },
-    {
-      title: 'Paid Amount',
-      class: 'pb-3 text-start min-w-[20%]',
-    },
-    {
-      title: 'Remaining Amount',
-      class: 'pb-3 text-start min-w-[20%]',
-    },
-    {
-      title: 'Manage',
-      class: 'pb-3 pr-12 text-end min-w-[20%]',
-    },
-    {
-      title: 'Details',
-      class: 'pb-3 pr-12 text-end min-w-[20%]',
-    },
-  ]
-
-  const formatDate = (date) => {
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0'); // getMonth() is zero-based
-    const year = d.getFullYear();
-  
-    return `${day}-${month}-${year}`;
-  };
-
-  const modalData =
-  selectedSupply && selectedSupply.currentSupply
-    ? [
-        {
-          label: 'date',
-          value: `${formatDate(selectedSupply.currentSupply.date)}`,
-        },
-        {
-          label: 'Amount',
-          value: `${selectedSupply.currentSupply.amount} DA`,
-        },
-        { 
-          label: 'Remaining amount', 
-          value: `${selectedSupply.currentSupply.remaining_amount } DA`,
-        },
-        {
-          label: 'Paid amount',
-          value: `${selectedSupply.currentSupply.paid_amount} DA`,
-        },
-        {
-          label: 'Description',
-          value: selectedSupply.currentSupply.description,
-        },
-        {
-          label: 'Supplier',
-          value: selectedSupplier,
-        },
-      ]
-    : []
-    
   return (
     <main className="container mx-auto p-4 mt-[52px] flex flex-wrap mb-5">
       <div className="w-full max-w-full px-3 mb-6 mx-auto">
@@ -556,7 +130,7 @@ const SuppliesContent = () => {
               </div>
             </div>
             <Table
-              data={filteredSupplies}
+              data={filteredSupplies(supplies,searchQuery)}
               actions={actions}
               headerConfig={headerConfig}
               tableTitle={'supplies'}
@@ -566,9 +140,17 @@ const SuppliesContent = () => {
       </div>
       {showModal && (
         <AddModalWithProducts
-          onSubmit={handleAddSubmit}
+          onSubmit={(productInputs) => handleAddSubmit(
+            setErrorMessage,
+            setFormData,
+            setShowModal,
+            setSupplies,
+            lastSupplyId,
+            formData,
+            productInputs,
+            setShowErrorPopup)}
           onCancel={() => setShowModal(false)}
-          InputsConfig={InputsConfig}
+          InputsConfig={InputsConfig(formData,setFormData,suppliers)}
           title={'Supply'}
         />
       )}
@@ -576,22 +158,41 @@ const SuppliesContent = () => {
         <ConfirmModal
           title="Delete Supply"
           message={`Are you sure you want to delete this Supply?`}
-          onConfirm={handleConfirmDelete}
+          onConfirm={ () => handleConfirmDelete(
+            selectedSupply,
+            setSupplies,
+            setSelectedSupply,
+            setShowDeleteModal,
+            supplies,setErrorMessage,
+            setShowErrorPopup)}
           onCancel={() => setShowDeleteModal(false)}
         />
       )}
       {showConfirmModal && (
         <ConfirmModal
           message="Are you sure you want to delete all supplies?"
-          onConfirm={handleDeleteAll}
+          onConfirm={() => handleDeleteAll(
+          setSupplies,
+          setLastSupplyId,
+          setShowConfirmModal,
+          setErrorMessage,
+          setShowErrorPopup)}
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
       {showUpdateModal && selectedSupply && (
         <UpdateModal
           title="Update Supply"
-          InputsConfig={InputsConfig}
-          onSubmit={handleUpdateSubmit}
+          InputsConfig={InputsConfig(formData,setFormData,suppliers)}
+          onSubmit={(productInputs) => handleUpdateSubmit(
+            setSupplies,
+            setLastSupplyId,
+            setFormData,setShowUpdateModal,
+            formData,
+            selectedSupply,
+            productInputs,
+            setErrorMessage,
+            setShowErrorPopup)}
           onCancel={handleCancelUpdate}
           supplyId={selectedSupply.id}
         />
@@ -600,7 +201,7 @@ const SuppliesContent = () => {
         <DetailsModal
           isOpen={showDetailsModal}
           onClose={handleCloseDetails}
-          data={modalData}
+          data={modalData(selectedSupply,selectedSupplier,formatDate)}
           formatDate={(dateString) => new Date(dateString).toLocaleDateString()}
           tableData={selectedSupplyProducts}
           title="Supplies"
